@@ -1,4 +1,0 @@
-Windows Registry Editor Version 5.00
-
-[HKEY_CLASSES_ROOT\pngfile\shell\open with sth\command]
-@="C:\\Windows\\System32\\notepad.exe %1"
