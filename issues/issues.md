@@ -2,14 +2,19 @@
 
 #### 植入右键菜单功能
 
-#### 生成二维码
+#### Windows二维码库的选择
+
+C语言二维码的lib库使用libqrencode,该库来自FUKUCHI Kentaro，用于由QRCode文字生成bmp文件。  
+项目地址为：[libqrencode的github地址][]
+
+#### Windows编译libqrecode
 
 #### 修改注册表，添加用白名单
 
 通过对注册表设置，向注册表的KEY: **HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Terminal Server\TSAppAllowList**添加subkey,来增加远程可以打开的应用白名单.
 
-[Geekswithblogs.net]][]上的相关回答，不过现在这个网站好像访问不了  
-[archive.io]][]上有也有相关的回答：
+[Geekswithblogs.net][]上的相关回答，不过现在这个网站访问不了  
+[archive.io][]上有也有相关的回答：
 
 > Some tips from my fiddling.
 >
@@ -23,7 +28,6 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 
 下图是把notepad设置为RemoteApp可使用的应用白名单：  
 ![注册表图片][]
-
 
 #### 异常处理
 
@@ -40,10 +44,40 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 
 #### remoteapp在192.168.1.234下没有响应
 
+192.168.1.234 机器为Windows 8.1旗舰版
+
 #### MSDN上关于remote desktop client 的一些FQA
 
-    [FQA about Remote Desktop Client][]
+[FQA about Remote Desktop Client][]
 
+#### 深入调研远程连接桌面的设置
+
+#### 深入调研remoteapp的设置
+在192.168.1.114机器（Windows 7旗舰版 破解版）上，远程桌面登录后，打开remoteapp会提示**出现内部错误**,
+反之亦然
+
+但在61.146.164.120:10325机器（Windows 7旗舰版 为破解版）上，远程桌面登录后，可以打开remoteapp，反之亦然
+
+需要找出两台机器的差异。
+
+#### 上传文件接口调用
+
+
+#### MsTscAx class的调用
+这样可以更好地对远程连接桌面和远程连接应用进行异常处理，包括并不限于：  
+1. 连接建立了，但UI没有出来（现阶段只要侦测到TCP连接建立就认为远程桌面打开完成，实则还有一些UI处理完后才被认为远程桌面连接完成）；
+2. remoteapp打开远程文件时，文件不存在；
+3. remoteapp或者mstsc打开远程桌面时，由于远程桌面的已经达到配置连接数的极限，所以无法打开；
+
+
+#### 文件分享的基本流程
+1. 右键生成二维码（用户名 + 域 + 文件路径）
+2. 小智通过快捷键方式触发事件，获取当前活动云桌面的IP和端口；
+3. 小智解释出当前二维码的信息；
+4. 小智把二维码信息 + IP + 端口，发送给当前与小智绑定的小慧A；
+5. 小慧A把第4点获取到的信息推送给小慧B；
+
+前提，统一时间内只有一台小慧使用小智
 
 
 
@@ -60,3 +94,4 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 [archive.io]:http://archive.is/abBF
 [注册表图片]:/D:\lf\cloud-desktop-client\issues\res\1.PNG/
 [FQA about Remote Desktop Client]:https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/remote-desktop-client-faq
+[libqrencode的github地址]:https://github.com/fukuchi/libqrencode
