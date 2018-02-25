@@ -1,13 +1,21 @@
 # issue
 
+
 #### 植入右键菜单功能
 
 #### Windows二维码库的选择
 
+
 C语言二维码的lib库使用libqrencode,该库来自FUKUCHI Kentaro，用于由QRCode文字生成bmp文件。  
 项目地址为：[libqrencode的github地址][]
 
-#### Windows编译libqrecode
+#### Windows编译libqrencode
+
+1. libqrencode版本：libqrencode 3.4.4 
+2. 编译方法可以查看：[VS2015编译qrencode-3.4.4][], VS2010也可以编译出libqrencode的静态库，会出现下图的错误信息  
+![编译错误图片][]  
+解决的方法：[error C2054: 在“inline”之后应输入“(”][]
+3. [libqrencode学习笔记（二）： 用libqrencode静态库库生成二维码并保存为BMP图片][]
 
 #### 修改注册表，添加用白名单
 
@@ -95,3 +103,7 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 [注册表图片]:/D:\lf\cloud-desktop-client\issues\res\1.PNG/
 [FQA about Remote Desktop Client]:https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/remote-desktop-client-faq
 [libqrencode的github地址]:https://github.com/fukuchi/libqrencode
+[VS2015编译qrencode-3.4.4]:http://blog.csdn.net/ljttianqin/article/details/73699777
+[编译错误图片]:/D:\lf\cloud-desktop-client\issues\res\compile_error.PNG/
+[error C2054: 在“inline”之后应输入“(”]:http://www.cnblogs.com/lgh1992314/p/5834697.html
+[libqrencode学习笔记（二）： 用libqrencode静态库库生成二维码并保存为BMP图片]:http://blog.csdn.net/ljttianqin/article/details/73823666
