@@ -3,19 +3,59 @@
 
 #### 植入右键菜单功能
 
-#### Windows二维码库的选择
-
+#### Windows二维码库libqrencode
 
 C语言二维码的lib库使用libqrencode,该库来自FUKUCHI Kentaro，用于由QRCode文字生成bmp文件。  
 项目地址为：[libqrencode的github地址][]
 
-#### Windows编译libqrencode
+#### Windows编译libqrencode（需要同时编译32位和64位版本，以备用）
 
 1. libqrencode版本：libqrencode 3.4.4 
 2. 编译方法可以查看：[VS2015编译qrencode-3.4.4][], VS2010也可以编译出libqrencode的静态库，会出现下图的错误信息  
 ![编译错误图片][]  
 解决的方法：[error C2054: 在“inline”之后应输入“(”][]
-3. [libqrencode学习笔记（二）： 用libqrencode静态库库生成二维码并保存为BMP图片][]
+3. 使用参考：[libqrencode学习笔记（二）： 用libqrencode静态库库生成二维码并保存为BMP图片][]，**这里生成的图片太小了**
+4. 使用参考：[QR Code Painter w/Fukuchi libqrencode][]
+
+#### Windows二维码库libqr
+
+项目github地址：[libqr的github地址][]
+
+#### Windows上编译libqr（需要同时编译32位和64位版本，以备用）
+[window7 x64 vs2015 如何编译 libqr 二维码生成库？][]
+
+
+#### libqr库编译错误问题处理
+
+
+#### libqr生成bmp
+
+
+#### libqr生成png
+
+
+#### win32项目加载bmp和png
+
+视频教程：[Win32: Loading and Displaying Bitmaps][]
+
+
+
+#### 将生成的png或者bmp图片显示在桌面上
+
+1. 现在生成二维码图片太小；（需要修改图片像素）
+2. 生成图片展示在屏幕中间；
+
+
+#### Windows Agent的界面定义
+1. 双击打开的时候是一个具有GUI的应用程序
+2. 右键“生成分享二维码”的时候，是一个后台运行的应用程序
+3. 1和2里面的程序属于同一个
+
+
+#### Windows Agent卸载时，需要去除右键快捷菜单功能
+
+#### 定义给APPC的接口和字段
+
 
 #### 修改注册表，添加用白名单
 
@@ -68,8 +108,6 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 
 需要找出两台机器的差异。
 
-#### 上传文件接口调用
-
 
 #### MsTscAx class的调用
 这样可以更好地对远程连接桌面和远程连接应用进行异常处理，包括并不限于：  
@@ -85,7 +123,11 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 4. 小智把二维码信息 + IP + 端口，发送给当前与小智绑定的小慧A；
 5. 小慧A把第4点获取到的信息推送给小慧B；
 
-前提，统一时间内只有一台小慧使用小智
+前提，同一时间内只有一台小慧使用小智
+
+
+#### 使用strerr和errorno
+
 
 
 
@@ -107,3 +149,7 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 [编译错误图片]:/D:\lf\cloud-desktop-client\issues\res\compile_error.PNG/
 [error C2054: 在“inline”之后应输入“(”]:http://www.cnblogs.com/lgh1992314/p/5834697.html
 [libqrencode学习笔记（二）： 用libqrencode静态库库生成二维码并保存为BMP图片]:http://blog.csdn.net/ljttianqin/article/details/73823666
+[QR Code Painter w/Fukuchi libqrencode]:https://code.msdn.microsoft.com/windowsapps/QR-Code-Painter-wFukuchi-13c3bd68
+[libqr的github地址]:https://github.com/rsky/qrcode
+[window7 x64 vs2015 如何编译 libqr 二维码生成库？]:http://www.cnblogs.com/cheungxiongwei/p/7493448.html
+[Win32: Loading and Displaying Bitmaps]:http://xoax.net/cpp/crs/win32/lessons/Lesson9/
