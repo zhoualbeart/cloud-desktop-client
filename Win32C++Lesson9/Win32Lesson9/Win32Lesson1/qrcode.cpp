@@ -13,7 +13,7 @@ int genernate_qrcode(const char *qrdata, const char *bmp_filepath)
 
 	errcode = QR_ERR_NONE;
     /* qrInit的5个参数分别是version,mode,纠错等级和掩码和错误码 */
-	p = qrInit(15, QR_EM_8BIT, 2, -1, &errcode);
+	p = qrInit(15, QR_EM_8BIT, 1, -1, &errcode);
 
 	if (NULL == qrdata)
 	{

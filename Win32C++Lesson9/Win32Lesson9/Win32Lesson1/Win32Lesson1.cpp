@@ -183,13 +183,13 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WIN32LESSON1));
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
 	//wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_WIN32LESSON1);
 	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= szWindowClass;
-	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON1));
 
 	return RegisterClassEx(&wcex);
 }
@@ -215,8 +215,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    //dwStyle |= WS_CLIPSIBLINGS;
 	//dwStyle &= ~(WS_CAPTION | WS_BORDER);
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPED|WS_MINIMIZEBOX,
+   //WS_OVERLAPPEDWINDOW & WS_SYSMENU
+   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & WS_SYSMENU ,
       CW_USEDEFAULT, CW_USEDEFAULT, 280, 280, NULL, NULL, hInstance, NULL);
+
+   CreateWindow(   //按钮创建    
+        "static",    
+        "请用小慧扫码保存文件\r\n也可以使用快捷键Alt+s直接发送给小慧",    
+        WS_CHILD | WS_VISIBLE | SS_CENTER,    
+        30,290,280,35,    
+        hWnd,    
+        NULL,    
+        hInstance,    
+        0);    
 
    if (!hWnd)
    {
@@ -267,7 +278,7 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC)
 	}
 
 	// Blit the dc which holds the bitmap onto the window's dc
-	BOOL qRetBlit = ::BitBlt(hWinDC, 0, 0, qBitmap.bmWidth, qBitmap.bmHeight,
+	BOOL qRetBlit = ::BitBlt(hWinDC, 50, 40, qBitmap.bmWidth, qBitmap.bmHeight,
 		hLocalDC, 0, 0, SRCCOPY);
 	if (!qRetBlit) {
 		::MessageBox(NULL, __T("Blit Failed"), __T("Error"), MB_OK);
@@ -314,7 +325,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		GetWindowRect(hWnd,&rect);
 		rect.left=(scrWidth-rect.right)/2;
 		rect.top=(scrHeight-rect.bottom)/2;
-		SetWindowPos(hWnd,HWND_TOP,rect.left,rect.top,rect.right,rect.bottom,SWP_SHOWWINDOW);
+		SetWindowPos(hWnd,HWND_TOP,rect.left,rect.top,350,390,SWP_SHOWWINDOW);
 		break;
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);

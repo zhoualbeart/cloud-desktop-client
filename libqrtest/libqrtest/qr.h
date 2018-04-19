@@ -324,7 +324,7 @@ QR_API qr_byte_t *qrSymbolToJSON(QRCode *qr, int sep, int mag, int *size);
 QR_API qr_byte_t *qrSymbolToPBM(QRCode *qr, int sep, int mag, int *size);
 QR_API qr_byte_t *qrSymbolToBMP(QRCode *qr, int sep, int mag, int *size);
 QR_API qr_byte_t *qrSymbolToSVG(QRCode *qr, int sep, int mag, int *size);
-//QR_API qr_byte_t *qrSymbolToTIFF(QRCode *qr, int sep, int mag, int *size);
+QR_API qr_byte_t *qrSymbolToTIFF(QRCode *qr, int sep, int mag, int *size);
 QR_API qr_byte_t *qrSymbolToPNG(QRCode *qr, int sep, int mag, int *size);
 
 /*

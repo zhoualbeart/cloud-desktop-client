@@ -111,6 +111,7 @@
     <ClInclude Include="Win32Lesson1.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="C:\Users\clouder\Desktop\在线代理.ico" />
     <None Include="small.ico" />
     <None Include="Win32Lesson1.ico" />
     <None Include="ReadMe.txt" />

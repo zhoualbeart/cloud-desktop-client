@@ -1,14 +1,21 @@
 # issue
 
 
-#### 植入右键菜单功能
+#### 植入右键菜单功能                                                    OK 
+需要安装windows agent往注册表写入注册信息  
 
-#### Windows二维码库libqrencode
+
+#### agent需不需要安装和界面，or做成一个服务                            OK
+需要安装，不需要GUI，只是一个可执行程序，当右键快捷菜单时，调用这个可执行程序
+
+
+#### Windows二维码库libqrencode                                         OK
 
 C语言二维码的lib库使用libqrencode,该库来自FUKUCHI Kentaro，用于由QRCode文字生成bmp文件。  
-项目地址为：[libqrencode的github地址][]
+项目地址为：[libqrencode的github地址][]  
+使用范例：[简单的二维码QRCode C/C++库][]
 
-#### Windows编译libqrencode（需要同时编译32位和64位版本，以备用）
+#### Windows编译libqrencode（需要同时编译32位和64位版本，以备用）        OK
 
 1. libqrencode版本：libqrencode 3.4.4 
 2. 编译方法可以查看：[VS2015编译qrencode-3.4.4][], VS2010也可以编译出libqrencode的静态库，会出现下图的错误信息  
@@ -17,47 +24,52 @@ C语言二维码的lib库使用libqrencode,该库来自FUKUCHI Kentaro，用于�
 3. 使用参考：[libqrencode学习笔记（二）： 用libqrencode静态库库生成二维码并保存为BMP图片][]，**这里生成的图片太小了**
 4. 使用参考：[QR Code Painter w/Fukuchi libqrencode][]
 
-#### Windows二维码库libqr
+#### Windows二维码库libqr                                               OK
 
 项目github地址：[libqr的github地址][]
 
 #### Windows上编译libqr（需要同时编译32位和64位版本，以备用）
+
 [window7 x64 vs2015 如何编译 libqr 二维码生成库？][]
 
 
-#### libqr库编译错误问题处理
+#### libqr库编译错误问题处理                                             TBD
 
 
-#### libqr生成bmp
+#### libqr生成bmp                      ------------ OK  
 
+qrSymbolToBMP  
 
-#### libqr生成png
+#### libqr生成png                      ------------ N/A  
 
+qrSymbolToPNG  
 
-#### win32项目加载bmp和png
+#### win32项目加载bmp和png                                               OK
 
 视频教程：[Win32: Loading and Displaying Bitmaps][]
+Win32Lession1工程理解
+
+#### win32项目加载提示图片，提示用户使用快捷键（Ctrl+x）获取二维码数据      N/A
+
+#### 二维码数据内容                                                N/A
 
 
+#### 接收到appcc数据桌面(桌面组）数据格式                 N/A                  
+{"powerboy_id":xxx, ....}
 
-#### 将生成的png或者bmp图片显示在桌面上
+#### 发送给appcc数据格式(快捷键方式）                    N/A
+{"powerdude_id":"xxx", "action":"file_sharing", “data”: {"ip":"xxx", "port":"xxx", "domain":"xxx", "username": "xxx", "password": "xxx" }
 
-1. 现在生成二维码图片太小；（需要修改图片像素）
+#### 将生成的png或者bmp图片显示在桌面上                   N/A (需要联调)
+1. libencode库生成二维码图片太小,改成使用libqr库；（需要修改图片像素）
 2. 生成图片展示在屏幕中间；
 
 
-#### Windows Agent的界面定义
-1. 双击打开的时候是一个具有GUI的应用程序
-2. 右键“生成分享二维码”的时候，是一个后台运行的应用程序
-3. 1和2里面的程序属于同一个
+#### Windows Agent卸载时，需要去除右键快捷菜单功能              TBD
 
+#### snapshot功能C改造                      TBD
 
-#### Windows Agent卸载时，需要去除右键快捷菜单功能
-
-#### 定义给APPC的接口和字段
-
-
-#### 修改注册表，添加用白名单
+#### 修改注册表，添加用白名单                           N/A
 
 通过对注册表设置，向注册表的KEY: **HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Terminal Server\TSAppAllowList**添加subkey,来增加远程可以打开的应用白名单.
 
@@ -77,9 +89,9 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 下图是把notepad设置为RemoteApp可使用的应用白名单：  
 ![注册表图片][]
 
-#### 异常处理
+#### 异常处理                                       TBD
 
-#### 自动识别应用路径并添加进注册表表白名单
+#### 自动识别应用路径并添加进注册表表白名单            N/A
 
 找到系统安装的office路径和pdf预览程序的路径，添加进白名单;
 
@@ -140,6 +152,8 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 
 
 
+
+
 [Geekswithblogs.net]:http://geekswithblogs.net/twickers/archive/2009/12/18/137048.aspx
 [archive.io]:http://archive.is/abBF
 [注册表图片]:/D:\lf\cloud-desktop-client\issues\res\1.PNG/
@@ -153,3 +167,4 @@ is not required. "Path" is the only one really needed. Resuming, remoteapplicati
 [libqr的github地址]:https://github.com/rsky/qrcode
 [window7 x64 vs2015 如何编译 libqr 二维码生成库？]:http://www.cnblogs.com/cheungxiongwei/p/7493448.html
 [Win32: Loading and Displaying Bitmaps]:http://xoax.net/cpp/crs/win32/lessons/Lesson9/
+[简单的二维码QRCode C/C++库]:http://blog.okbase.net/vchelp/archive/814.html

@@ -3,6 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cloud-desktop-client", "cloud-desktop-client\cloud-desktop-client.vcxproj", "{F109B129-83AB-42EA-9309-9A4A4680129E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libqrtest", "..\libqrtest\libqrtest\libqrtest.vcxproj", "{4E21D1CA-02E8-4BC9-9444-45D1B2E230B2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_world", "hello_world\hello_world.vcxproj", "{AF8AE8B6-5D79-4D8B-808F-3695749CC929}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +17,14 @@ Global
 		{F109B129-83AB-42EA-9309-9A4A4680129E}.Debug|Win32.Build.0 = Debug|Win32
 		{F109B129-83AB-42EA-9309-9A4A4680129E}.Release|Win32.ActiveCfg = Release|Win32
 		{F109B129-83AB-42EA-9309-9A4A4680129E}.Release|Win32.Build.0 = Release|Win32
+		{4E21D1CA-02E8-4BC9-9444-45D1B2E230B2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4E21D1CA-02E8-4BC9-9444-45D1B2E230B2}.Debug|Win32.Build.0 = Debug|Win32
+		{4E21D1CA-02E8-4BC9-9444-45D1B2E230B2}.Release|Win32.ActiveCfg = Release|Win32
+		{4E21D1CA-02E8-4BC9-9444-45D1B2E230B2}.Release|Win32.Build.0 = Release|Win32
+		{AF8AE8B6-5D79-4D8B-808F-3695749CC929}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AF8AE8B6-5D79-4D8B-808F-3695749CC929}.Debug|Win32.Build.0 = Debug|Win32
+		{AF8AE8B6-5D79-4D8B-808F-3695749CC929}.Release|Win32.ActiveCfg = Release|Win32
+		{AF8AE8B6-5D79-4D8B-808F-3695749CC929}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
