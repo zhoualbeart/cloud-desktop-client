@@ -31,7 +31,7 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "C:\\Users\\clouder\\Desktop\\在线代理.ico"
+IDI_ICON3               ICON                    "res\\在线代理.ico"
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -157,7 +157,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_APP_TITLE           ""
     IDC_WIN32LESSON1        "WIN32LESSON1"
 END
 

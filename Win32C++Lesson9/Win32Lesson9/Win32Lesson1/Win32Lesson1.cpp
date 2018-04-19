@@ -30,6 +30,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 static char *read_json_data_from_file(char const *filename);
 static void strrpl(char* pDstOut, char* pSrcIn, const char* pSrcRpl, const char* pDstRpl);
+void Convert(const char* strIn, char* strOut, int sourceCodepage, int targetCodepage);
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -55,8 +56,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	LoadString(hInstance, IDC_WIN32LESSON1, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	char str_final[MAX_PATH] = {0};
-	strrpl(str_final, lpCmdLine, "\\", "\\\\");
+
+	char str_final_ansi[MAX_PATH] = {0};
+	char str_final_utf8[MAX_PATH] = {0};
+	strrpl(str_final_ansi, lpCmdLine, "\\", "\\\\");
+	Convert(str_final_ansi, str_final_utf8, CP_ACP, CP_UTF8);
 
 	 char TempFilePath[MAX_PATH];
      if(!GetTempPath(sizeof(TempFilePath),TempFilePath)) {
@@ -79,7 +83,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	char qrcode_content[10240] = {0};
 	char temp2[1024] = {0};
-	char temp3[1024] = {0};
+	char temp3[2048] = {0};
+	char qr_data_utf8[2048] = {0};
 	char *temp4;
 
 	/* 1.get url from config */
@@ -123,9 +128,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	/* cmd: wmic computersystem get domain */
 	
 	char *temp = "/s?T=12&t=";
-	sprintf(temp2, "{\"username\":\"%s\", \"domain\":\"\", \"filepath\":\"%s\"}",username, str_final);
+	sprintf(temp2, "{\"username\":\"%s\", \"domain\":\"\", \"filepath\":\"%s\"}",username, str_final_utf8);
 	temp4 = curl_escape(temp2, strlen(temp2));
 	sprintf(temp3, "%s%s%s&d=%s", appcc_host, temp, strtime, temp4);
+
 
 	if (0 != genernate_qrcode(temp3, qr_bmp_file))
 	{
@@ -183,13 +189,13 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON3));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
 	//wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_WIN32LESSON1);
 	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= szWindowClass;
-	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON3));
 
 	return RegisterClassEx(&wcex);
 }
@@ -482,4 +488,24 @@ static void strrpl(char* pDstOut, char* pSrcIn, const char* pSrcRpl, const char*
 }
 
 
+void Convert(const char* strIn, char* strOut, int sourceCodepage, int targetCodepage)  
+{  
+	int len = lstrlen(strIn);  
+	int unicodeLen = MultiByteToWideChar(sourceCodepage, 0, strIn, -1, NULL, 0);  
 
+	wchar_t* pUnicode = NULL;  
+	pUnicode = new wchar_t[unicodeLen + 1];  
+	memset(pUnicode, 0, (unicodeLen + 1)*sizeof(wchar_t));  
+	MultiByteToWideChar(sourceCodepage, 0, strIn, -1, (LPWSTR)pUnicode, unicodeLen);  
+
+	BYTE * pTargetData = NULL;  
+	int targetLen = WideCharToMultiByte(targetCodepage, 0, (LPWSTR)pUnicode, -1, (char *)pTargetData, 0, NULL, NULL);  
+
+	pTargetData = new BYTE[targetLen + 1];  
+	memset(pTargetData, 0, targetLen + 1);  
+	WideCharToMultiByte(targetCodepage, 0, (LPWSTR)pUnicode, -1, (char *)pTargetData, targetLen, NULL, NULL);  
+	lstrcpy(strOut, (char*)pTargetData);  
+
+	delete pUnicode;  
+	delete pTargetData;  
+}  
