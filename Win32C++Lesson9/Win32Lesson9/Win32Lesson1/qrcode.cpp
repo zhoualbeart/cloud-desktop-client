@@ -13,7 +13,7 @@ int genernate_qrcode(const char *qrdata, const char *bmp_filepath)
 
 	errcode = QR_ERR_NONE;
     /* qrInit的5个参数分别是version,mode,纠错等级和掩码和错误码 */
-	p = qrInit(15, QR_EM_8BIT, 1, -1, &errcode);
+	p = qrInit(20, QR_EM_8BIT, QR_ECL_L, -1, &errcode);
 
 	if (NULL == qrdata)
 	{
@@ -37,7 +37,7 @@ int genernate_qrcode(const char *qrdata, const char *bmp_filepath)
 	
 	size = 0;
     /* 两个5分别表示：像素之间的距离和二维码图片的放大倍数，范围都是1-16 */
-	buffer = qrSymbolToBMP(p, 0,3 , &size);
+	buffer = qrSymbolToBMP(p, 0, 2, &size);
     if (buffer == NULL)
     {
         printf("error %s", qrGetErrorInfo(p));

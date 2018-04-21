@@ -45,10 +45,27 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HACCEL hAccelTable;
 
 	if (NULL == lpCmdLine || 0 == strlen(lpCmdLine)) // check the arg is null or not
+	{
+		::MessageBox(NULL, __T("filepath is null or empty!"), __T("Error"), MB_OK);
 		return FALSE;
+	}
 
 	if (0 != _access(lpCmdLine, 0))   // check is the file exist
+	{
+		::MessageBox(NULL, __T("file no exsist!"), __T("Error"), MB_OK);
 		return FALSE;
+	}
+
+	size_t len =  strlen(lpCmdLine);
+
+	if (MAX_PATH < strlen(lpCmdLine))   // check file length
+	{
+		::MessageBox(NULL, 
+					 __T("the filename for the path is too long, "
+					 "you shuold shorten the filepath"), 
+					 __T("Error"), MB_OK);
+		return FALSE;
+	}
 
 
 	// Initialize global strings
