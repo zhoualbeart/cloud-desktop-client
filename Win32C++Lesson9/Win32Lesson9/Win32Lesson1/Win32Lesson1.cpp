@@ -17,6 +17,12 @@
 #define CONF_FILE            "config.json"
 #define BMP_FILE			 "qr.bmp"
 
+/* 请用小慧扫码保存文件\r\n也可以使用快捷键Alt+s直接发送给小慧的ASCII */
+#define PROMPT_MESSAGE		 \
+	"\u8bf7\u7528\u5c0f\u6167\u626b\u7801\u4fdd\u5b58\u6587\u4ef6\r\n"		\
+	"\u4e5f\u53ef\u4ee5\u4f7f\u7528\u5feb\u6377"							\
+	"\u952eAlt+s\u76f4\u63a5\u53d1\u9001\u7ed9\u5c0f\u6167"
+
 // Global Variables:
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
@@ -149,7 +155,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	temp4 = curl_escape(temp2, strlen(temp2));
 	sprintf(temp3, "%s%s%s&d=%s", appcc_host, temp, strtime, temp4);
 
-
 	if (0 != genernate_qrcode(temp3, qr_bmp_file))
 	{
 		printf("error to gernate qrcode file\n");
@@ -244,9 +249,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    CreateWindow(   //按钮创建    
         "static",    
-        "请用小慧扫码保存文件\r\n也可以使用快捷键Alt+s直接发送给小慧",    
-        WS_CHILD | WS_VISIBLE | SS_CENTER,    
-        30,290,280,35,    
+        PROMPT_MESSAGE,    
+        WS_CHILD | WS_VISIBLE | SS_CENTER ,    
+        4,230,260,35,    
         hWnd,    
         NULL,    
         hInstance,    
@@ -263,7 +268,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC)
+bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
 {
 	// Load the bitmap image file
 	HBITMAP hBitmap;
@@ -281,6 +286,7 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC)
 	// Verify that the device context was created
 	if (hLocalDC == NULL) {
 		::MessageBox(NULL, __T("CreateCompatibleDC Failed"), __T("Error"), MB_OK);
+		::DeleteObject(hBitmap);
 		return false;
 	}
 
@@ -290,6 +296,8 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC)
 		reinterpret_cast<LPVOID>(&qBitmap));
 	if (!iReturn) {
 		::MessageBox(NULL, __T("GetObject Failed"), __T("Error"), MB_OK);
+		::DeleteDC(hLocalDC);
+		::DeleteObject(hBitmap);
 		return false;
 	}
 
@@ -301,7 +309,7 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC)
 	}
 
 	// Blit the dc which holds the bitmap onto the window's dc
-	BOOL qRetBlit = ::BitBlt(hWinDC, 50, 40, qBitmap.bmWidth, qBitmap.bmHeight,
+	BOOL qRetBlit = ::BitBlt(hWinDC, 35, 25, qBitmap.bmWidth, qBitmap.bmHeight,
 		hLocalDC, 0, 0, SRCCOPY);
 	if (!qRetBlit) {
 		::MessageBox(NULL, __T("Blit Failed"), __T("Error"), MB_OK);
@@ -341,14 +349,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_CREATE:
-		int scrWidth,scrHeight;
-		RECT rect;
-		scrWidth=GetSystemMetrics(SM_CXSCREEN);
-		scrHeight=GetSystemMetrics(SM_CYSCREEN);
-		GetWindowRect(hWnd,&rect);
-		rect.left=(scrWidth-rect.right)/2;
-		rect.top=(scrHeight-rect.bottom)/2;
-		SetWindowPos(hWnd,HWND_TOP,rect.left,rect.top,350,390,SWP_SHOWWINDOW);
+		{
+			int scrWidth,scrHeight;
+			RECT rect;
+			// Load the bitmap image file
+			HBITMAP hBitmap;
+			hBitmap = (HBITMAP)::LoadImage(NULL, (LPCSTR)qr_bmp_file, IMAGE_BITMAP, 0, 0,
+				LR_LOADFROMFILE);
+			// Verify that the image was loaded
+			if (hBitmap == NULL) {
+				::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
+				return false;
+			}
+			// Get the bitmap's parameters and verify the get
+			BITMAP qBitmap;
+			int iReturn = GetObject(reinterpret_cast<HGDIOBJ>(hBitmap), sizeof(BITMAP),
+				reinterpret_cast<LPVOID>(&qBitmap));
+			if (!iReturn) {
+				::MessageBox(NULL, __T("GetObject Failed"), __T("Error"), MB_OK);
+				::DeleteObject(hBitmap);
+				return false;
+			}
+
+			scrWidth=GetSystemMetrics(SM_CXSCREEN);
+			scrHeight=GetSystemMetrics(SM_CYSCREEN);
+			GetWindowRect(hWnd,&rect);
+			rect.left=(scrWidth-rect.right)/2;
+			rect.top=(scrHeight-rect.bottom)/2;
+			SetWindowPos(hWnd, HWND_TOP, rect.left, rect.top, 
+				qBitmap.bmWidth + 80, qBitmap.bmHeight + 120, SWP_SHOWWINDOW);
+
+			::DeleteObject(hBitmap);
+		}
 		break;
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);
@@ -370,7 +402,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code here...
 		//LoadAndBlitBitmap(LPCWSTR("C:\\tmp\\b.bmp"), hdc);
-		LoadAndBlitBitmap(LPCWSTR(qr_bmp_file), hdc);
+		LoadAndBlitBitmap(LPCWSTR(qr_bmp_file), hdc, hWnd);
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_DESTROY:
