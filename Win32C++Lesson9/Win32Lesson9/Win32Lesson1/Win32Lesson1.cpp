@@ -11,11 +11,19 @@
 #include <curl.h>
 #include <stat.h>
 #include <timeb.h>
+#include <Windows.h>
+#include <Ntsecapi.h>
+#include <assert.h>
+#include <lm.h>
 
 
-#define DEFAULT_APPCC_HOST   "https://appcc.cloudak47.com"
-#define CONF_FILE            "config.json"
-#define BMP_FILE			 "qr.bmp"
+#pragma comment(lib, "netapi32.lib")
+
+
+#define    DOMAIN_SUFFIX		          ".com"
+#define	   DEFAULT_APPCC_HOST             "https://appcc.cloudak47.com"
+#define    CONF_FILE                      "config.json"
+#define    BMP_FILE			              "qr.bmp"
 
 /* 请用小慧扫码保存文件\r\n也可以使用快捷键Alt+s直接发送给小慧的ASCII */
 #define PROMPT_MESSAGE		 \
@@ -37,6 +45,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 static char *read_json_data_from_file(char const *filename);
 static void strrpl(char* pDstOut, char* pSrcIn, const char* pSrcRpl, const char* pDstRpl);
 void Convert(const char* strIn, char* strOut, int sourceCodepage, int targetCodepage);
+int  get_domain_name(char *domain_name);
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -148,10 +157,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		fprintf(stderr, "Error: error number:%sd", GetLastError());
 	}
 	/* 4.get domain */
-	/* cmd: wmic computersystem get domain */
+	char domain_name[MAX_PATH] = {0};
+	get_domain_name(domain_name);
 	
 	char *temp = "/s?T=12&t=";
-	sprintf(temp2, "{\"username\":\"%s\", \"domain\":\"\", \"filepath\":\"%s\"}",username, str_final_utf8);
+	sprintf(temp2, "{\"username\":\"%s\", \"domain\":\"%s\", \"filepath\":\"%s\"}",
+		    username, domain_name, str_final_utf8);
 	temp4 = curl_escape(temp2, strlen(temp2));
 	sprintf(temp3, "%s%s%s&d=%s", appcc_host, temp, strtime, temp4);
 
@@ -557,4 +568,100 @@ void Convert(const char* strIn, char* strOut, int sourceCodepage, int targetCode
 
 	delete pUnicode;  
 	delete pTargetData;  
-}  
+} 
+
+
+
+
+int  get_domain_name(char *domain_name)
+{
+	NET_API_STATUS nStatus;
+
+    LPCWSTR lpDcName = NULL;
+
+	if (NULL == domain_name)
+	{
+		fprintf(stderr, "Error: the domain name can not be null\n");
+		return -1;
+	}
+
+    //
+    // Call the NetGetDCName function
+    //
+    nStatus = NetGetDCName(NULL, NULL, (LPBYTE *) &lpDcName);
+    //
+    // If the call succeeds,
+    //
+    if (nStatus == NERR_Success) {
+        wprintf(L"NetGetDCName was successful\n", nStatus);
+        wprintf(L"DC Name = %ws\n", lpDcName);
+
+		DWORD ret = GetEnvironmentVariable("USERDOMAIN", domain_name, MAX_PATH);
+		if ( 0 == ret) {
+			fprintf(stderr, "Failed to get domain name\n");
+			memset(domain_name, 0 , MAX_PATH);
+		} else {
+			
+			fprintf(stdout, "The domain name is ========== %s\n", domain_name);
+			strcat(domain_name, DOMAIN_SUFFIX);
+			fprintf(stdout, "After strcat domain name is %s\n", domain_name);
+			for (char* ptr = domain_name; *ptr; ptr++) {  
+				*ptr = tolower(*ptr);  //change to lower case
+			}  
+			fprintf(stdout, "The lower case domain name is %s\n", domain_name);
+		}
+        // Need to free the returned buffer
+        nStatus = NetApiBufferFree( (LPVOID) lpDcName);
+        if (nStatus != NERR_Success)
+            wprintf(L"NetApiBufferFree failed with error: %lu (0x%lx)\n",
+                nStatus, nStatus);
+    } else {
+        wprintf(L"NetGetDCName failed with error: %lu (0x%lx)\n", nStatus,
+                nStatus);
+        wprintf(L"   Error = ");
+		memset(domain_name, 0 , MAX_PATH);
+        switch (nStatus) {
+        case ERROR_INVALID_PARAMETER:
+            wprintf(L"ERROR_INVALID_PARAMETER\n");
+            break;
+        case ERROR_NO_SUCH_DOMAIN:
+            wprintf(L"ERROR_NO_SUCH_DOMAIN\n");
+            break;
+        case ERROR_NOT_SUPPORTED:
+            wprintf(L"ERROR_NOT_SUPPORTED\n");
+            break;
+        case ERROR_BAD_NETPATH:
+            wprintf(L"ERROR_BAD_NETPATH\n");
+            break;
+        case ERROR_INVALID_COMPUTERNAME:
+            wprintf(L"ERROR_INVALID_COMPUTERNAME\n");
+            break;
+        case DNS_ERROR_INVALID_NAME_CHAR:
+            wprintf(L"DNS_ERROR_INVALID_NAME_CHAR\n");
+            break;
+        case DNS_ERROR_NON_RFC_NAME:
+            wprintf(L"DNS_ERROR_NON_RFC_NAME\n");
+            break;
+        case ERROR_INVALID_NAME:
+            wprintf(L"ERROR_INVALID_NAME\n");
+            break;
+        case NERR_DCNotFound:
+            wprintf(L"NERR_DCNotFound\n");
+            break;
+        case NERR_WkstaNotStarted:
+            wprintf(L"NERR_WkstaNotStarted\n");
+            break;
+        case RPC_S_SERVER_UNAVAILABLE:
+            wprintf(L"RPC_S_SERVER_UNAVAILABLE\n");
+            break;
+        case RPC_E_REMOTE_DISABLED:
+            wprintf(L"RPC_E_REMOTE_DISABLED\n");
+            break;
+        default:
+            wprintf(L"Other error, see Winerror.h or lmerr.h)\n");
+            break;
+        }
+    }
+
+	return strlen(domain_name);
+}
