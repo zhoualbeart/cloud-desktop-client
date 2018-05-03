@@ -323,7 +323,6 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
 	BOOL qRetBlit = ::BitBlt(hWinDC, 35, 25, qBitmap.bmWidth, qBitmap.bmHeight,
 		hLocalDC, 0, 0, SRCCOPY);
 	if (!qRetBlit) {
-		::MessageBox(NULL, __T("Blit Failed"), __T("Error"), MB_OK);
 		return false;
 	}
 
