@@ -269,8 +269,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
  /*  hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & WS_SYSMENU ,
       CW_USEDEFAULT, CW_USEDEFAULT, 280, 280, NULL, NULL, hInstance, NULL);*/
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_POPUP,
-      CW_USEDEFAULT, CW_USEDEFAULT, 800, 800, NULL, NULL, hInstance, NULL);
+   /*hWnd = CreateWindow(szWindowClass, szTitle, WS_POPUP,
+      CW_USEDEFAULT, CW_USEDEFAULT, 330, 482, NULL, NULL, hInstance, NULL);*/
+
+   hWnd = CreateWindowEx(WS_EX_LAYERED, szWindowClass, NULL, WS_POPUP | WS_VISIBLE,
+        0, 0, 330, 482, NULL, NULL, hInstance, NULL);
+
+   DWORD dwErr = GetLastError();
 
    //CreateWindow(   //按钮创建    
    //     "static",    
@@ -410,6 +415,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetWindowPos(hWnd, HWND_TOP, rect.left, rect.top, 
 				330, 482, SWP_SHOWWINDOW);
 
+			PostMessageW(hWnd,WM_PAINT,NULL,NULL);  
+
 			::DeleteObject(hBitmap);
 		}
 		break;
@@ -441,43 +448,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
 
-	case WM_NCHITTEST:  
-		POINT pt;   
-		pt.x = GET_X_LPARAM(lParam);   
-		pt.y = GET_Y_LPARAM(lParam);  
-		::ScreenToClient(hWnd,&pt);  
-
-		RECT rcClient;  
-		::GetClientRect(hWnd, &rcClient);  
-
-		if (pt.x<rcClient.left+20&&pt.y<rcClient.top+20)//左上角,判断是不是在左上角，就是看当前坐标是不是即在左边拖动的范围内，又在上边拖动的范围内，其它角判断方法类似  
-		{  
-			return HTTOPLEFT;  
-		}else if (pt.x>rcClient.right-20 && pt.y<rcClient.top+20)//右上角  
-		{  
-			return HTTOPRIGHT;  
-		}else if (pt.x<rcClient.left+20 && pt.y>rcClient.bottom-20)//左下角  
-		{  
-			return HTBOTTOMLEFT;  
-		}else if (pt.x>rcClient.right-20 && pt.y>rcClient.bottom-20)//右下角  
-		{  
-			return HTBOTTOMRIGHT;  
-		}else if (pt.x<rcClient.left+20)  
-		{  
-			return HTLEFT;  
-		}else if (pt.x>rcClient.right-20)  
-		{  
-			return HTRIGHT;  
-		}else if (pt.y<rcClient.top+20)  
-		{  
-			return HTTOP;  
-		}if (pt.y>rcClient.bottom-20)  
-		{  
-			return HTBOTTOM;          //以上这四个是上、下、左、右四个边  
-		}else  
-		{  
-			return HTCAPTION;  
-		}  
+	case WM_LBUTTONDOWN:  
+		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);  
 		break;  
 
 	default:
@@ -918,10 +890,24 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
     blend.AlphaFormat = AC_SRC_ALPHA;
  
     // paint the window (in the right location) with the alpha-blended bitmap
-    UpdateLayeredWindow(hwndSplash, hdcScreen, &ptOrigin, &sizeSplash,
-        hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA);
+	/*SetWindowLong (hwndSplash, 
+               GWL_EXSTYLE, 
+               GetWindowLong(hwndSplash,GWL_EXSTYLE) & ~WS_EX_LAYOUTRTL);*/
 
-	DWORD dwErr = GetLastError();
+	/*if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, &ptOrigin, &sizeSplash,
+        hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
+	{
+		DWORD dwErr = GetLastError();
+		assert(L"UpdateLayeredWindow 调用失败");
+		TCHAR tmp[255] = {_T('\0')};
+	}*/
+	if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, NULL, &sizeSplash,
+        hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
+	{
+		DWORD dwErr = GetLastError();
+		assert(L"UpdateLayeredWindow 调用失败");
+		TCHAR tmp[255] = {_T('\0')};
+	}
  
     // delete temporary objects
     SelectObject(hdcMem, hbmpOld);
@@ -937,49 +923,51 @@ bool LoadAndBlitBitmap2(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
 	//	LR_LOADFROMFILE);
 	hBitmap = LoadSplashImage();
 	// Verify that the image was loaded
-	if (hBitmap == NULL) {
-		::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
-		return false;
-	}
+	//if (hBitmap == NULL) {
+	//	::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
+	//	return false;
+	//}
 
-	// Create a device context that is compatible with the window
-	HDC hLocalDC;
-	hLocalDC = ::CreateCompatibleDC(hWinDC);
-	// Verify that the device context was created
-	if (hLocalDC == NULL) {
-		::MessageBox(NULL, __T("CreateCompatibleDC Failed"), __T("Error"), MB_OK);
-		::DeleteObject(hBitmap);
-		return false;
-	}
+	//// Create a device context that is compatible with the window
+	//HDC hLocalDC;
+	//hLocalDC = ::CreateCompatibleDC(hWinDC);
+	//// Verify that the device context was created
+	//if (hLocalDC == NULL) {
+	//	::MessageBox(NULL, __T("CreateCompatibleDC Failed"), __T("Error"), MB_OK);
+	//	::DeleteObject(hBitmap);
+	//	return false;
+	//}
 
-	// Get the bitmap's parameters and verify the get
-	BITMAP qBitmap;
-	int iReturn = GetObject(reinterpret_cast<HGDIOBJ>(hBitmap), sizeof(BITMAP),
-		reinterpret_cast<LPVOID>(&qBitmap));
-	if (!iReturn) {
-		::MessageBox(NULL, __T("GetObject Failed"), __T("Error"), MB_OK);
-		::DeleteDC(hLocalDC);
-		::DeleteObject(hBitmap);
-		return false;
-	}
+	//// Get the bitmap's parameters and verify the get
+	//BITMAP qBitmap;
+	//int iReturn = GetObject(reinterpret_cast<HGDIOBJ>(hBitmap), sizeof(BITMAP),
+	//	reinterpret_cast<LPVOID>(&qBitmap));
+	//if (!iReturn) {
+	//	::MessageBox(NULL, __T("GetObject Failed"), __T("Error"), MB_OK);
+	//	::DeleteDC(hLocalDC);
+	//	::DeleteObject(hBitmap);
+	//	return false;
+	//}
 
-	// Select the loaded bitmap into the device context
-	HBITMAP hOldBmp = (HBITMAP)::SelectObject(hLocalDC, hBitmap);
-	if (hOldBmp == NULL) {
-		::MessageBox(NULL, __T("SelectObject Failed"), __T("Error"), MB_OK);
-		return false;
-	}
+	//// Select the loaded bitmap into the device context
+	//HBITMAP hOldBmp = (HBITMAP)::SelectObject(hLocalDC, hBitmap);
+	//if (hOldBmp == NULL) {
+	//	::MessageBox(NULL, __T("SelectObject Failed"), __T("Error"), MB_OK);
+	//	return false;
+	//}
 
-	// Blit the dc which holds the bitmap onto the window's dc
-	BOOL qRetBlit = ::BitBlt(hWinDC, 0, 0, qBitmap.bmWidth, qBitmap.bmHeight,
-		hLocalDC, 0, 0, SRCCOPY);
-	if (!qRetBlit) {
-		return false;
-	}
+	//// Blit the dc which holds the bitmap onto the window's dc
+	//BOOL qRetBlit = ::BitBlt(hWinDC, 0, 0, qBitmap.bmWidth, qBitmap.bmHeight,
+	//	hLocalDC, 0, 0, SRCCOPY);
+	//if (!qRetBlit) {
+	//	return false;
+	//}
+
+ 	SetSplashImage(hWnd, hBitmap);
 
 	// Unitialize and deallocate resources
-	::SelectObject(hLocalDC, hOldBmp);
-	::DeleteDC(hLocalDC);
+	//::SelectObject(hLocalDC, hOldBmp);
+	//::DeleteDC(hLocalDC);
 	::DeleteObject(hBitmap);
 	return true;
 }
