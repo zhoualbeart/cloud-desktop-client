@@ -19,3 +19,7 @@
 
 
 // TODO: reference additional headers your program requires here
+#include <comdef.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
+#pragma  comment(lib, "gdiplus.lib") 

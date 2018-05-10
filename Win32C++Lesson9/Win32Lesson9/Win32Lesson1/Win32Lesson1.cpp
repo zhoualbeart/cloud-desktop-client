@@ -15,6 +15,8 @@
 #include <Ntsecapi.h>
 #include <assert.h>
 #include <lm.h>
+#include <wincodec.h>
+#include <windowsx.h>   
 
 
 #pragma comment(lib, "netapi32.lib")
@@ -46,7 +48,13 @@ static char *read_json_data_from_file(char const *filename);
 static void strrpl(char* pDstOut, char* pSrcIn, const char* pSrcRpl, const char* pDstRpl);
 void Convert(const char* strIn, char* strOut, int sourceCodepage, int targetCodepage);
 int  get_domain_name(char *domain_name);
+IStream * CreateStreamOnResource(LPCTSTR lpName, LPCTSTR lpType);
+HBITMAP LoadSplashImage();
+void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash);
+bool LoadAndBlitBitmap2(LPCWSTR szFileName, HDC hWinDC, HWND hWnd);
 
+
+ULONG_PTR gdiplusToken = 0; 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
@@ -56,6 +64,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
  	// TODO: Place code here.
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;  
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);  
 	MSG msg;
 	HACCEL hAccelTable;
 
@@ -192,6 +202,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		}
 	}
 
+	Gdiplus::GdiplusShutdown(gdiplusToken);  
 	return (int) msg.wParam;
 }
 
@@ -255,18 +266,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //dwStyle |= WS_CLIPSIBLINGS;
 	//dwStyle &= ~(WS_CAPTION | WS_BORDER);
    //WS_OVERLAPPEDWINDOW & WS_SYSMENU
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & WS_SYSMENU ,
-      CW_USEDEFAULT, CW_USEDEFAULT, 280, 280, NULL, NULL, hInstance, NULL);
+ /*  hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & WS_SYSMENU ,
+      CW_USEDEFAULT, CW_USEDEFAULT, 280, 280, NULL, NULL, hInstance, NULL);*/
 
-   CreateWindow(   //按钮创建    
-        "static",    
-        PROMPT_MESSAGE,    
-        WS_CHILD | WS_VISIBLE | SS_CENTER ,    
-        4,230,260,35,    
-        hWnd,    
-        NULL,    
-        hInstance,    
-        0);    
+   hWnd = CreateWindow(szWindowClass, szTitle, WS_POPUP,
+      CW_USEDEFAULT, CW_USEDEFAULT, 800, 800, NULL, NULL, hInstance, NULL);
+
+   //CreateWindow(   //按钮创建    
+   //     "static",    
+   //     PROMPT_MESSAGE,    
+   //     WS_CHILD | WS_VISIBLE | SS_CENTER ,    
+   //     4,230,260,35,    
+   //     hWnd,    
+   //     NULL,    
+   //     hInstance,    
+   //     0);    
 
    if (!hWnd)
    {
@@ -360,6 +374,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 		{
+			// Set transparency 
+			//LONG t = GetWindowLong(hWnd, GWL_EXSTYLE);
+			//t |= WS_EX_LAYERED;
+			//SetWindowLong(hWnd, GWL_EXSTYLE, t);
+			//::SetLayeredWindowAttributes(hWnd, 0, 50, LWA_ALPHA); 
+			//DWORD dwErr = GetLastError();
+
 			int scrWidth,scrHeight;
 			RECT rect;
 			// Load the bitmap image file
@@ -387,7 +408,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			rect.left=(scrWidth-rect.right)/2;
 			rect.top=(scrHeight-rect.bottom)/2;
 			SetWindowPos(hWnd, HWND_TOP, rect.left, rect.top, 
-				qBitmap.bmWidth + 80, qBitmap.bmHeight + 120, SWP_SHOWWINDOW);
+				330, 482, SWP_SHOWWINDOW);
 
 			::DeleteObject(hBitmap);
 		}
@@ -412,12 +433,53 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code here...
 		//LoadAndBlitBitmap(LPCWSTR("C:\\tmp\\b.bmp"), hdc);
+		LoadAndBlitBitmap2(L"C:\\Users\\clouder\\Desktop\\123.png", hdc, hWnd);
 		LoadAndBlitBitmap(LPCWSTR(qr_bmp_file), hdc, hWnd);
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+
+	case WM_NCHITTEST:  
+		POINT pt;   
+		pt.x = GET_X_LPARAM(lParam);   
+		pt.y = GET_Y_LPARAM(lParam);  
+		::ScreenToClient(hWnd,&pt);  
+
+		RECT rcClient;  
+		::GetClientRect(hWnd, &rcClient);  
+
+		if (pt.x<rcClient.left+20&&pt.y<rcClient.top+20)//左上角,判断是不是在左上角，就是看当前坐标是不是即在左边拖动的范围内，又在上边拖动的范围内，其它角判断方法类似  
+		{  
+			return HTTOPLEFT;  
+		}else if (pt.x>rcClient.right-20 && pt.y<rcClient.top+20)//右上角  
+		{  
+			return HTTOPRIGHT;  
+		}else if (pt.x<rcClient.left+20 && pt.y>rcClient.bottom-20)//左下角  
+		{  
+			return HTBOTTOMLEFT;  
+		}else if (pt.x>rcClient.right-20 && pt.y>rcClient.bottom-20)//右下角  
+		{  
+			return HTBOTTOMRIGHT;  
+		}else if (pt.x<rcClient.left+20)  
+		{  
+			return HTLEFT;  
+		}else if (pt.x>rcClient.right-20)  
+		{  
+			return HTRIGHT;  
+		}else if (pt.y<rcClient.top+20)  
+		{  
+			return HTTOP;  
+		}if (pt.y>rcClient.bottom-20)  
+		{  
+			return HTBOTTOM;          //以上这四个是上、下、左、右四个边  
+		}else  
+		{  
+			return HTCAPTION;  
+		}  
+		break;  
+
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -663,4 +725,261 @@ int  get_domain_name(char *domain_name)
     }
 
 	return strlen(domain_name);
+}
+
+// Creates a stream object initialized with the data from an executable resource.
+IStream * CreateStreamOnResource(LPCTSTR lpName, LPCTSTR lpType)
+{
+    // initialize return value
+    IStream * ipStream = NULL;
+ 
+    // find the resource
+    HRSRC hrsrc = FindResource(NULL, lpName, lpType);
+    if (hrsrc == NULL)
+        goto Return;
+ 
+    // load the resource
+    DWORD dwResourceSize = SizeofResource(NULL, hrsrc);
+    HGLOBAL hglbImage = LoadResource(NULL, hrsrc);
+    if (hglbImage == NULL)
+        goto Return;
+ 
+    // lock the resource, getting a pointer to its data
+    LPVOID pvSourceResourceData = LockResource(hglbImage);
+    if (pvSourceResourceData == NULL)
+        goto Return;
+ 
+    // allocate memory to hold the resource data
+    HGLOBAL hgblResourceData = GlobalAlloc(GMEM_MOVEABLE, dwResourceSize);
+    if (hgblResourceData == NULL)
+        goto Return;
+ 
+    // get a pointer to the allocated memory
+    LPVOID pvResourceData = GlobalLock(hgblResourceData);
+    if (pvResourceData == NULL)
+        goto FreeData;
+ 
+    // copy the data from the resource to the new memory block
+    CopyMemory(pvResourceData, pvSourceResourceData, dwResourceSize);
+    GlobalUnlock(hgblResourceData);
+ 
+    // create a stream on the HGLOBAL containing the data
+    if (SUCCEEDED(CreateStreamOnHGlobal(hgblResourceData, TRUE, &ipStream)))
+        goto Return;
+ 
+FreeData:
+    // couldn't create stream; free the memory
+    GlobalFree(hgblResourceData);
+ 
+Return:
+    // no need to unlock or free the resource
+    return ipStream;
+}
+
+// Loads a PNG image from the specified stream (using Windows Imaging Component).
+IWICBitmapSource * LoadBitmapFromStream(IStream * ipImageStream)
+{
+    // initialize return value
+    IWICBitmapSource * ipBitmap = NULL;
+ 
+    // load WIC's PNG decoder
+    IWICBitmapDecoder * ipDecoder = NULL;
+    if (FAILED(CoCreateInstance(CLSID_WICPngDecoder, NULL, CLSCTX_INPROC_SERVER, __uuidof(ipDecoder), reinterpret_cast<void**>(&ipDecoder))))
+        goto Return;
+ 
+    // load the PNG
+    if (FAILED(ipDecoder->Initialize(ipImageStream, WICDecodeMetadataCacheOnLoad)))
+        goto ReleaseDecoder;
+ 
+    // check for the presence of the first frame in the bitmap
+    UINT nFrameCount = 0;
+    if (FAILED(ipDecoder->GetFrameCount(&nFrameCount)) || nFrameCount != 1)
+        goto ReleaseDecoder;
+ 
+    // load the first frame (i.e., the image)
+    IWICBitmapFrameDecode * ipFrame = NULL;
+    if (FAILED(ipDecoder->GetFrame(0, &ipFrame)))
+        goto ReleaseDecoder;
+ 
+    // convert the image to 32bpp BGRA format with pre-multiplied alpha
+    //   (it may not be stored in that format natively in the PNG resource,
+    //   but we need this format to create the DIB to use on-screen)
+    WICConvertBitmapSource(GUID_WICPixelFormat32bppPBGRA, ipFrame, &ipBitmap);
+    ipFrame->Release();
+ 
+ReleaseDecoder:
+    ipDecoder->Release();
+Return:
+    return ipBitmap;
+}
+
+HBITMAP CreateHBITMAP(IWICBitmapSource * ipBitmap)
+{
+    // initialize return value
+    HBITMAP hbmp = NULL;
+ 
+    // get image attributes and check for valid image
+    UINT width = 0;
+    UINT height = 0;
+    if (FAILED(ipBitmap->GetSize(&width, &height)) || width == 0 || height == 0)
+        goto Return;
+ 
+    // prepare structure giving bitmap information (negative height indicates a top-down DIB)
+    BITMAPINFO bminfo;
+    ZeroMemory(&bminfo, sizeof(bminfo));
+    bminfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bminfo.bmiHeader.biWidth = width;
+    bminfo.bmiHeader.biHeight = -((LONG) height);
+    bminfo.bmiHeader.biPlanes = 1;
+    bminfo.bmiHeader.biBitCount = 32;
+    bminfo.bmiHeader.biCompression = BI_RGB;
+ 
+    // create a DIB section that can hold the image
+    void * pvImageBits = NULL;
+    HDC hdcScreen = GetDC(NULL);
+    hbmp = CreateDIBSection(hdcScreen, &bminfo, DIB_RGB_COLORS, &pvImageBits, NULL, 0);
+    ReleaseDC(NULL, hdcScreen);
+    if (hbmp == NULL)
+        goto Return;
+ 
+    // extract the image into the HBITMAP
+    const UINT cbStride = width * 4;
+    const UINT cbImage = cbStride * height;
+    if (FAILED(ipBitmap->CopyPixels(NULL, cbStride, cbImage, static_cast<BYTE *>(pvImageBits))))
+    {
+        // couldn't extract image; delete HBITMAP
+        DeleteObject(hbmp);
+        hbmp = NULL;
+    }
+ 
+Return:
+    return hbmp;
+}
+
+// Loads the PNG containing the splash image into a HBITMAP.
+HBITMAP LoadSplashImage()
+{
+    HBITMAP hbmpSplash = NULL;
+ 
+    // load the PNG image data into a stream
+    IStream * ipImageStream = CreateStreamOnResource(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"));
+    if (ipImageStream == NULL)
+        goto Return;
+ 
+    // load the bitmap with WIC
+    IWICBitmapSource * ipBitmap = LoadBitmapFromStream(ipImageStream);
+    if (ipBitmap == NULL)
+        goto ReleaseStream;
+ 
+    // create a HBITMAP containing the image
+    hbmpSplash = CreateHBITMAP(ipBitmap);
+    ipBitmap->Release();
+ 
+ReleaseStream:
+    ipImageStream->Release();
+Return:
+    return hbmpSplash;
+}
+
+
+// Calls UpdateLayeredWindow to set a bitmap (with alpha) as the content of the splash window.
+void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
+{
+    // get the size of the bitmap
+    BITMAP bm;
+    GetObject(hbmpSplash, sizeof(bm), &bm);
+    SIZE sizeSplash = { bm.bmWidth, bm.bmHeight };
+ 
+    // get the primary monitor's info
+    POINT ptZero = { 0 };
+    HMONITOR hmonPrimary = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO monitorinfo = { 0 };
+    monitorinfo.cbSize = sizeof(monitorinfo);
+    GetMonitorInfo(hmonPrimary, &monitorinfo);
+ 
+    // center the splash screen in the middle of the primary work area
+    /*const RECT & rcWork = monitorinfo.rcWork;
+    POINT ptOrigin;
+    ptOrigin.x = rcWork.left + (rcWork.right - rcWork.left - sizeSplash.cx) / 2;
+    ptOrigin.y = rcWork.top + (rcWork.bottom - rcWork.top - sizeSplash.cy) / 2;*/
+	RECT windowRect;
+	GetWindowRect(hwndSplash,&windowRect);
+	POINT ptOrigin = { windowRect.left, windowRect.top };
+	
+    // create a memory DC holding the splash bitmap
+    HDC hdcScreen = ::GetDC(hwndSplash);
+    HDC hdcMem = CreateCompatibleDC(hdcScreen);
+    HBITMAP hbmpOld = (HBITMAP) SelectObject(hdcMem, hbmpSplash);
+ 
+    // use the source image's alpha channel for blending
+    BLENDFUNCTION blend = { 0 };
+    blend.BlendOp = AC_SRC_OVER;
+    blend.SourceConstantAlpha = 255;
+    blend.AlphaFormat = AC_SRC_ALPHA;
+ 
+    // paint the window (in the right location) with the alpha-blended bitmap
+    UpdateLayeredWindow(hwndSplash, hdcScreen, &ptOrigin, &sizeSplash,
+        hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA);
+
+	DWORD dwErr = GetLastError();
+ 
+    // delete temporary objects
+    SelectObject(hdcMem, hbmpOld);
+    DeleteDC(hdcMem);
+    ReleaseDC(NULL, hdcScreen);
+}
+
+bool LoadAndBlitBitmap2(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
+{
+	// Load the bitmap image file
+	HBITMAP hBitmap;
+	//hBitmap = (HBITMAP)::LoadImage(NULL, (LPCSTR)szFileName, IMAGE_BITMAP, 0, 0,
+	//	LR_LOADFROMFILE);
+	hBitmap = LoadSplashImage();
+	// Verify that the image was loaded
+	if (hBitmap == NULL) {
+		::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
+		return false;
+	}
+
+	// Create a device context that is compatible with the window
+	HDC hLocalDC;
+	hLocalDC = ::CreateCompatibleDC(hWinDC);
+	// Verify that the device context was created
+	if (hLocalDC == NULL) {
+		::MessageBox(NULL, __T("CreateCompatibleDC Failed"), __T("Error"), MB_OK);
+		::DeleteObject(hBitmap);
+		return false;
+	}
+
+	// Get the bitmap's parameters and verify the get
+	BITMAP qBitmap;
+	int iReturn = GetObject(reinterpret_cast<HGDIOBJ>(hBitmap), sizeof(BITMAP),
+		reinterpret_cast<LPVOID>(&qBitmap));
+	if (!iReturn) {
+		::MessageBox(NULL, __T("GetObject Failed"), __T("Error"), MB_OK);
+		::DeleteDC(hLocalDC);
+		::DeleteObject(hBitmap);
+		return false;
+	}
+
+	// Select the loaded bitmap into the device context
+	HBITMAP hOldBmp = (HBITMAP)::SelectObject(hLocalDC, hBitmap);
+	if (hOldBmp == NULL) {
+		::MessageBox(NULL, __T("SelectObject Failed"), __T("Error"), MB_OK);
+		return false;
+	}
+
+	// Blit the dc which holds the bitmap onto the window's dc
+	BOOL qRetBlit = ::BitBlt(hWinDC, 0, 0, qBitmap.bmWidth, qBitmap.bmHeight,
+		hLocalDC, 0, 0, SRCCOPY);
+	if (!qRetBlit) {
+		return false;
+	}
+
+	// Unitialize and deallocate resources
+	::SelectObject(hLocalDC, hOldBmp);
+	::DeleteDC(hLocalDC);
+	::DeleteObject(hBitmap);
+	return true;
 }
