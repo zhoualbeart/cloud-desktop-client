@@ -1,4 +1,4 @@
-// Win32Lesson1.cpp : Defines the entry point for the application.
+ï»¿// Win32Lesson1.cpp : Defines the entry point for the application.
 //
 
 #include "stdafx.h"
@@ -17,7 +17,7 @@
 #include <lm.h>
 #include <wincodec.h>
 #include <windowsx.h>   
-
+#include <windef.h>
 
 #pragma comment(lib, "netapi32.lib")
 
@@ -27,7 +27,7 @@
 #define    CONF_FILE                      "config.json"
 #define    BMP_FILE			              "qr.bmp"
 
-/* ÇëÓÃĞ¡»ÛÉ¨Âë±£´æÎÄ¼ş\r\nÒ²¿ÉÒÔÊ¹ÓÃ¿ì½İ¼üAlt+sÖ±½Ó·¢ËÍ¸øĞ¡»ÛµÄASCII */
+/* è¯·ç”¨å°æ…§æ‰«ç ä¿å­˜æ–‡ä»¶\r\nä¹Ÿå¯ä»¥ä½¿ç”¨å¿«æ·é”®Alt+sç›´æ¥å‘é€ç»™å°æ…§çš„ASCII */
 #define PROMPT_MESSAGE		 \
 	"\u8bf7\u7528\u5c0f\u6167\u626b\u7801\u4fdd\u5b58\u6587\u4ef6\r\n"		\
 	"\u4e5f\u53ef\u4ee5\u4f7f\u7528\u5feb\u6377"							\
@@ -52,9 +52,12 @@ IStream * CreateStreamOnResource(LPCTSTR lpName, LPCTSTR lpType);
 HBITMAP LoadSplashImage();
 void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash);
 bool LoadAndBlitBitmap2(LPCWSTR szFileName, HDC hWinDC, HWND hWnd);
+bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd);
 
 
 ULONG_PTR gdiplusToken = 0; 
+int moveX;
+int moveY;
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
@@ -120,7 +123,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	/*
 	 * https://appcc.pispower.com/s?T=12&t=1497008691868&d=urlencode(JSON) 
 	 * http[s]://appcc.cloudak47.cn/s?T=12&t=1497008691868&d=
-	 * {¡°username¡±:¡±xxx¡±, ¡°domain¡±:¡±od.com¡±, ¡°filepath¡±:¡±C:\demo.txt¡±}
+	 * {â€œusernameâ€:â€xxxâ€, â€œdomainâ€:â€od.comâ€, â€œfilepathâ€:â€C:\demo.txtâ€}
 	 */
 
 	char qrcode_content[10240] = {0};
@@ -254,48 +257,74 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
+HWND hWndmain, mWndControl;
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   HWND hWnd;
+	HWND hStaticWnd;
 
-   hInst = hInstance; // Store instance handle in our global variable
+	hInst = hInstance; // Store instance handle in our global variable
 
-   //hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-   //   CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+	//hWndmain = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+	//   CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
-   //dwStyle |= WS_CLIPSIBLINGS;
+	//dwStyle |= WS_CLIPSIBLINGS;
 	//dwStyle &= ~(WS_CAPTION | WS_BORDER);
-   //WS_OVERLAPPEDWINDOW & WS_SYSMENU
- /*  hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & WS_SYSMENU ,
-      CW_USEDEFAULT, CW_USEDEFAULT, 280, 280, NULL, NULL, hInstance, NULL);*/
+	//WS_OVERLAPPEDWINDOW & WS_SYSMENU
+	/*  hWndmain = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & WS_SYSMENU ,
+	CW_USEDEFAULT, CW_USEDEFAULT, 280, 280, NULL, NULL, hInstance, NULL);*/
 
-   /*hWnd = CreateWindow(szWindowClass, szTitle, WS_POPUP,
-      CW_USEDEFAULT, CW_USEDEFAULT, 330, 482, NULL, NULL, hInstance, NULL);*/
+	/*hWndmain = CreateWindow(szWindowClass, szTitle, WS_POPUP,
+	CW_USEDEFAULT, CW_USEDEFAULT, 330, 482, NULL, NULL, hInstance, NULL);*/
 
-   hWnd = CreateWindowEx(WS_EX_LAYERED, szWindowClass, NULL, WS_POPUP | WS_VISIBLE,
-        0, 0, 330, 482, NULL, NULL, hInstance, NULL);
+	hWndmain = CreateWindowEx(WS_EX_LAYERED, szWindowClass, NULL, WS_POPUP | WS_VISIBLE,
+		0, 0, 330, 482, NULL, NULL, hInstance, NULL);
 
-   DWORD dwErr = GetLastError();
+	if (!hWndmain)
+	{
+		return FALSE;
+	}
 
-   //CreateWindow(   //°´Å¥´´½¨    
-   //     "static",    
-   //     PROMPT_MESSAGE,    
-   //     WS_CHILD | WS_VISIBLE | SS_CENTER ,    
-   //     4,230,260,35,    
-   //     hWnd,    
-   //     NULL,    
-   //     hInstance,    
-   //     0);    
+	HDC hdc, hdcControl;
+	PAINTSTRUCT ps;
+	hdc = BeginPaint(hWndmain, &ps);
+	LoadAndBlitBitmap2(L"C:\\Users\\clouder\\Desktop\\123.png", hdc, hWndmain);
+	EndPaint(hWndmain, &ps);  
+	
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+	// åˆ›å»ºç¬¬äºŒä¸ªçª—å£ï¼Œç”¨æ¥æ·»åŠ æ§ä»¶ï¼Œå¹¶åŠ è½½äºŒç»´ç  
+	mWndControl = CreateWindow(szWindowClass, NULL, WS_POPUP | WS_CHILD,
+		CW_USEDEFAULT, CW_USEDEFAULT, 330, 482, hWndmain, NULL, hInstance, NULL);
+	
+	// è®¾ç½®æ•´ä¸ªçª—å£ä½é€æ˜
+	LONG t = GetWindowLong(mWndControl, GWL_EXSTYLE);
+	t |= WS_EX_LAYERED;
+	SetWindowLong(mWndControl, GWL_EXSTYLE, t);
+	//::SetLayeredWindowAttributes(mWndControl, 0, 0, LWA_ALPHA); 
+	::SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 0), 111/*any*/, LWA_COLORKEY);
+	DWORD dwErr = GetLastError();
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+	// åœ¨ç¬¬äºŒä¸ªçª—å£ä¸Šåˆ›å»ºstaticæ§ä»¶
+	HWND hWndStatic = CreateWindow(_T("STATIC"),
+		NULL,
+		WS_CHILD | SS_BITMAP | WS_VISIBLE,
+		50, 100, 0, 0, mWndControl,0,  hInst, NULL);
 
-   return TRUE;
+	// åœ¨staticæ§ä»¶ä¸ŠåŠ è½½BMPå›¾ç‰‡
+	HBITMAP hBitmap;
+	hBitmap = (HBITMAP)::LoadImage(NULL, 
+		(LPCSTR)"C:\\Users\\clouder\\AppData\\Local\\Temp\\qr.bmp", IMAGE_BITMAP, 0, 0,
+		LR_LOADFROMFILE);
+	// Verify that the image was loaded
+	if (hBitmap == NULL) {
+		::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
+		return false;
+	}
+	SendMessage(hWndStatic, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
+
+	ShowWindow(hWndmain, nCmdShow);
+	UpdateWindow(hWndmain);
+
+	return TRUE;
 }
 
 bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
@@ -312,7 +341,7 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
 
 	// Create a device context that is compatible with the window
 	HDC hLocalDC;
-	hLocalDC = ::CreateCompatibleDC(hWinDC);
+	hLocalDC = CreateCompatibleDC(hWinDC);
 	// Verify that the device context was created
 	if (hLocalDC == NULL) {
 		::MessageBox(NULL, __T("CreateCompatibleDC Failed"), __T("Error"), MB_OK);
@@ -339,7 +368,7 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
 	}
 
 	// Blit the dc which holds the bitmap onto the window's dc
-	BOOL qRetBlit = ::BitBlt(hWinDC, 35, 25, qBitmap.bmWidth, qBitmap.bmHeight,
+	BOOL qRetBlit = ::BitBlt(hWinDC, 60, 100, qBitmap.bmWidth, qBitmap.bmHeight,
 		hLocalDC, 0, 0, SRCCOPY);
 	if (!qRetBlit) {
 		return false;
@@ -440,17 +469,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code here...
 		//LoadAndBlitBitmap(LPCWSTR("C:\\tmp\\b.bmp"), hdc);
-		LoadAndBlitBitmap2(L"C:\\Users\\clouder\\Desktop\\123.png", hdc, hWnd);
-		LoadAndBlitBitmap(LPCWSTR(qr_bmp_file), hdc, hWnd);
-		EndPaint(hWnd, &ps);
+//		LoadAndBlitBitmap2(L"C:\\Users\\clouder\\Desktop\\123.png", hdc, hWnd);
+//		LoadAndBlitBitmap(LPCWSTR(qr_bmp_file), hdc, hWnd);
+		EndPaint(hWnd, &ps);  
+
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
 
-	case WM_LBUTTONDOWN:  
-		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);  
-		break;  
+	case WM_WINDOWPOSCHANGING:
+		{
+			WINDOWPOS * winPos = (WINDOWPOS*)lParam;
+			if (hWnd == mWndControl)
+				MoveWindow(hWndmain, winPos->x, winPos->y, winPos->cx, winPos->cy,TRUE);
+		}
+		break;
+
+	case WM_ERASEBKGND:
+		return true;
+		break;
+
+	case WM_LBUTTONDOWN:
+		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+		break;
+
+	case WM_NCHITTEST:
+        return HTCAPTION;
+		break;
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -534,12 +580,12 @@ static char *read_json_data_from_file(char const *filename)
 // FullName: strrpl
 // Access: public 
 // Returns: void
-// Qualifier: ×Ö·û´®Ìæ»»º¯Êı,ÄÜÌæ»»ËùÓĞµÄÒªÌæ»»µÄ×Ö·û´®,±»Ìæ»»µÄ×Ö·û´®ºÍÌæ»»µÄ×Ö·û´®²»Ò»¶¨Ò»Ñù³¤.
-// Parameter: char * pDstOut,Êä³ö×Ö·û´®,Òª±£Ö¤×ã¹»µÄ¿Õ¼ä¿ÉÒÔ´æ´¢Ìæ»»ºóµÄ×Ö·û´®.
-// Parameter: char * pSrcIn,ÊäÈë×Ö·û´®.
-// Parameter: char * pSrcRpl,±»Ìæ»»µÄ×Ö·û´®.
-// Parameter: char * pDstRpl,Ìæ»»ºóµÄ×Ö·û´®.
-// ×¢Òâ:ÒÔÉÏµÄ×Ö·û´®¾ùÒªÒÔ '\0 '½áÎ².
+// Qualifier: å­—ç¬¦ä¸²æ›¿æ¢å‡½æ•°,èƒ½æ›¿æ¢æ‰€æœ‰çš„è¦æ›¿æ¢çš„å­—ç¬¦ä¸²,è¢«æ›¿æ¢çš„å­—ç¬¦ä¸²å’Œæ›¿æ¢çš„å­—ç¬¦ä¸²ä¸ä¸€å®šä¸€æ ·é•¿.
+// Parameter: char * pDstOut,è¾“å‡ºå­—ç¬¦ä¸²,è¦ä¿è¯è¶³å¤Ÿçš„ç©ºé—´å¯ä»¥å­˜å‚¨æ›¿æ¢åçš„å­—ç¬¦ä¸².
+// Parameter: char * pSrcIn,è¾“å…¥å­—ç¬¦ä¸².
+// Parameter: char * pSrcRpl,è¢«æ›¿æ¢çš„å­—ç¬¦ä¸².
+// Parameter: char * pDstRpl,æ›¿æ¢åçš„å­—ç¬¦ä¸².
+// æ³¨æ„:ä»¥ä¸Šçš„å­—ç¬¦ä¸²å‡è¦ä»¥ '\0 'ç»“å°¾.
 //************************************
 static void strrpl(char* pDstOut, char* pSrcIn, const char* pSrcRpl, const char* pDstRpl)
 { 
@@ -554,23 +600,23 @@ static void strrpl(char* pDstOut, char* pSrcIn, const char* pSrcRpl, const char*
 
 	do 
 	{
-		// ÕÒµ½ÏÂÒ»¸öÌæ»»µã
+		// æ‰¾åˆ°ä¸‹ä¸€ä¸ªæ›¿æ¢ç‚¹
 		p = strstr(pi, pSrcRpl); 
 
 		if(p != NULL) 
 		{ 
-			// ¿½±´ÉÏÒ»¸öÌæ»»µãºÍÏÂÒ»¸öÌæ»»µãÖĞ¼äµÄ×Ö·û´®
+			// æ‹·è´ä¸Šä¸€ä¸ªæ›¿æ¢ç‚¹å’Œä¸‹ä¸€ä¸ªæ›¿æ¢ç‚¹ä¸­é—´çš„å­—ç¬¦ä¸²
 			nLen = p - pi; 
 			memcpy(po, pi, nLen);
 
-			// ¿½±´ĞèÒªÌæ»»µÄ×Ö·û´®
+			// æ‹·è´éœ€è¦æ›¿æ¢çš„å­—ç¬¦ä¸²
 			memcpy(po + nLen, pDstRpl, nDstRplLen); 
 		} 
 		else 
 		{ 
 			strcpy(po, pi); 
 
-			// Èç¹ûÃ»ÓĞĞèÒª¿½±´µÄ×Ö·û´®,ËµÃ÷Ñ­»·Ó¦¸Ã½áÊø
+			// å¦‚æœæ²¡æœ‰éœ€è¦æ‹·è´çš„å­—ç¬¦ä¸²,è¯´æ˜å¾ªç¯åº”è¯¥ç»“æŸ
 			break;
 		} 
 
@@ -898,14 +944,14 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
         hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
 	{
 		DWORD dwErr = GetLastError();
-		assert(L"UpdateLayeredWindow µ÷ÓÃÊ§°Ü");
+		assert(L"UpdateLayeredWindow è°ƒç”¨å¤±è´¥");
 		TCHAR tmp[255] = {_T('\0')};
 	}*/
 	if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, NULL, &sizeSplash,
         hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
 	{
 		DWORD dwErr = GetLastError();
-		assert(L"UpdateLayeredWindow µ÷ÓÃÊ§°Ü");
+		assert(L"UpdateLayeredWindow è°ƒç”¨å¤±è´¥");
 		TCHAR tmp[255] = {_T('\0')};
 	}
  
