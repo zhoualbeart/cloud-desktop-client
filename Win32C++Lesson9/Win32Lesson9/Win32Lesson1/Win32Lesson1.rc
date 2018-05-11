@@ -39,6 +39,15 @@ IDI_ICON3               ICON                    "res\\在线代理.ico"
 //
 
 IDB_PNG_BG              PNG                     "C:\\Users\\clouder\\Desktop\\二维码下载.png"
+IDB_PNG_CLOSE           PNG                     "D:\\lf\\thinclient\\thinclient\\bin\\css\\close.png"
+IDB_PNG_CLOSE_PRESS     PNG                     "D:\\lf\\thinclient\\thinclient\\bin\\css\\closepress.png"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP1             BITMAP                  "res\\bitmap1.bmp"
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
