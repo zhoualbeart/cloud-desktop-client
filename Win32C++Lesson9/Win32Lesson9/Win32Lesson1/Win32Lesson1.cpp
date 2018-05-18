@@ -509,8 +509,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
 		break;
 
+	case WM_LBUTTONDBLCLK:
+	case WM_MOUSEMOVE:
 	case WM_LBUTTONUP:
-		fprintf(stdout, "fuck");
+	case WM_SETFOCUS:
+	case WM_MOUSEACTIVATE:
+
 		break;
 
 	case WM_NCHITTEST:
