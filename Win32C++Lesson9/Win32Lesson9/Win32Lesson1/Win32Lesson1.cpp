@@ -56,6 +56,7 @@ bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd);
 
 
 ULONG_PTR gdiplusToken = 0; 
+char qr_bmp_file[MAX_PATH] = {0};
 int moveX;
 int moveY;
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -143,7 +144,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	*strrchr(sPath, 0x5C) = 0;
 	sprintf(config_file, "%s\\%s", sPath, CONF_FILE);
 
-	char qr_bmp_file[MAX_PATH] = {0};
 	sprintf(qr_bmp_file, "%s%s", TempFilePath, BMP_FILE);
 
 	json_data = read_json_data_from_file(config_file);
@@ -312,7 +312,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	// 在static控件上加载BMP图片
 	HBITMAP hBitmap;
 	hBitmap = (HBITMAP)::LoadImage(NULL, 
-		(LPCSTR)"C:\\Users\\clouder\\AppData\\Local\\Temp\\qr.bmp", IMAGE_BITMAP, 0, 0,
+		(LPCSTR)qr_bmp_file, IMAGE_BITMAP, 0, 0,
 		LR_LOADFROMFILE);
 	// Verify that the image was loaded
 	if (hBitmap == NULL) {
