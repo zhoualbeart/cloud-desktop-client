@@ -257,7 +257,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-HWND hWndmain, mWndControl;
+HWND hWndmain = NULL, mWndControl = NULL;
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	HWND hStaticWnd;
@@ -299,12 +299,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	LONG t = GetWindowLong(mWndControl, GWL_EXSTYLE);
 	t |= WS_EX_LAYERED;
 	SetWindowLong(mWndControl, GWL_EXSTYLE, t);
-	//::SetLayeredWindowAttributes(mWndControl, 0, 255, LWA_ALPHA); 
+	//::SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 0), 111, LWA_COLORKEY | LWA_ALPHA); 
 	::SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 0), 111/*any*/, LWA_COLORKEY);
+
+	/*RedrawWindow(mWndControl, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME |
+        RDW_ALLCHILDREN);*/
 	DWORD dwErr = GetLastError();
+	HWND hWndStatic = CreateWindow(_T("STATIC"),
 
 	// 在第二个窗口上创建static控件
-	HWND hWndStatic = CreateWindow(_T("STATIC"),
 		NULL,
 		WS_CHILD | SS_BITMAP | WS_VISIBLE,
 		60, 130, 0, 0, mWndControl,0,  hInst, NULL);
@@ -322,19 +325,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	SendMessage(hWndStatic, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
 
 	//在第二个窗口上创建关闭按钮
-	RECT rect;
-	GetWindowRect(mWndControl, &rect);
-	LONG BtnStyle = WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON;
-	/*HWND hWndButton = CreateWindow(TEXT("button"), "",  
-		BtnStyle,  
-		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL,  
-		hInst, NULL); */
-	HWND hWndButton = CreateWindowEx(WS_EX_LAYERED, TEXT("button"), "", BtnStyle,
-		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL, hInstance, NULL);
+	//RECT rect;
+	//GetWindowRect(mWndControl, &rect);
+	//LONG BtnStyle = WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON;
+	///*HWND hWndButton = CreateWindow(TEXT("button"), "",  
+	//	BtnStyle,  
+	//	rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL,  
+	//	hInst, NULL); */
+	//HWND hWndButton = CreateWindowEx(WS_EX_LAYERED, TEXT("button"), "", BtnStyle,
+	//	rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL, hInstance, NULL);
 
-	DWORD dwErr1 = GetLastError();
+	//DWORD dwErr1 = GetLastError();
 
-	LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
+	//LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
 
 	ShowWindow(hWndmain, nCmdShow);
 	UpdateWindow(hWndmain);
@@ -493,32 +496,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
 
+	case WM_WINDOWPOSCHANGED:
+	case WM_SIZE:
 	case WM_WINDOWPOSCHANGING:
+	
 		{
 			WINDOWPOS * winPos = (WINDOWPOS*)lParam;
 			if (hWnd == mWndControl)
 				MoveWindow(hWndmain, winPos->x, winPos->y, winPos->cx, winPos->cy,TRUE);
+			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
 
 	case WM_ERASEBKGND:
-		return true;
+		if (hWnd == hWndmain)
+			return TRUE;
 		break;
 
 	case WM_LBUTTONDOWN:
 		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
 		break;
 
-	case WM_LBUTTONDBLCLK:
-	case WM_MOUSEMOVE:
-	case WM_LBUTTONUP:
-	case WM_SETFOCUS:
-	case WM_MOUSEACTIVATE:
+	//case WM_LBUTTONDBLCLK:
+	//case WM_MOUSEMOVE:
+	//case WM_LBUTTONUP:
+	case WM_MOVE:
+	//case WM_MOUSEACTIVATE:
+	//case WM_ACTIVATEAPP:
+	//case WM_NCCALCSIZE:
+	//case WM_WINDOWPOSCHANGED:
+	//case WM_SIZE:
+	case WM_NCMOUSEMOVE:
+	//	return 0;
+	//LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
+		if (hWnd == hWndmain)
+			LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
+			return DefWindowProc(hWnd, message, wParam, lParam);
+		break;
 
+	/*case WM_SETFOCUS:
+		SendMessage(hWnd,WM_SETFOCUS,0,0);
+		break;*/
+
+	case WM_CTLCOLOR:
+		return (LRESULT)CreateSolidBrush(RGB(255, 0, 0));
 		break;
 
 	case WM_NCHITTEST:
-        return HTCAPTION;
+		if (hWnd == mWndControl)
+			return HTCAPTION;
 		break;
 
 	default:
@@ -944,7 +970,16 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
     ptOrigin.x = rcWork.left + (rcWork.right - rcWork.left - sizeSplash.cx) / 2;
     ptOrigin.y = rcWork.top + (rcWork.bottom - rcWork.top - sizeSplash.cy) / 2;*/
 	RECT windowRect;
-	GetWindowRect(hwndSplash,&windowRect);
+	
+	if (mWndControl == NULL)
+	{
+		
+		GetWindowRect(hwndSplash,&windowRect);
+	}
+	else 
+	{
+		GetWindowRect(mWndControl,&windowRect);
+	}
 	POINT ptOrigin = { windowRect.left, windowRect.top };
 	
     // create a memory DC holding the splash bitmap
@@ -970,7 +1005,15 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
 		assert(L"UpdateLayeredWindow 调用失败");
 		TCHAR tmp[255] = {_T('\0')};
 	}*/
-	if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, NULL, &sizeSplash,
+	char string[255] = {0};
+	memset(string, 0, sizeof string );
+	sprintf(string, "x = %d & y = %d\n", ptOrigin.x, ptOrigin.y);
+	OutputDebugString(string);
+	memset(string, 0, sizeof string );
+	sprintf(string, "hWnd = %p\n", hwndSplash);
+	OutputDebugString(string);
+
+	if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, &ptOrigin, &sizeSplash,
         hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
 	{
 		DWORD dwErr = GetLastError();
