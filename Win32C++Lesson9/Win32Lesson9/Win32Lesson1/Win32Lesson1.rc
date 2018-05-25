@@ -38,9 +38,9 @@ IDI_ICON3               ICON                    "res\\在线代理.ico"
 // PNG
 //
 
-IDB_PNG_BG              PNG                     "C:\\Users\\clouder\\Desktop\\二维码下载.png"
 IDB_PNG_CLOSE           PNG                     "D:\\lf\\thinclient\\thinclient\\bin\\css\\close.png"
 IDB_PNG_CLOSE_PRESS     PNG                     "D:\\lf\\thinclient\\thinclient\\bin\\css\\closepress.png"
+IDB_PNG_BG              PNG                     "res\\二维码下载.png"
 
 /////////////////////////////////////////////////////////////////////////////
 //
