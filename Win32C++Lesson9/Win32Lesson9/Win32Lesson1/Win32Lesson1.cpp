@@ -53,6 +53,7 @@ HBITMAP LoadSplashImage(LPCTSTR lpName, LPCTSTR lpType);
 void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash);
 bool LoadPngImage(LPCTSTR lpName, LPCTSTR lpType, HWND hWnd);
 bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd);
+HBRUSH m_brush;
 
 
 ULONG_PTR gdiplusToken = 0; 
@@ -239,6 +240,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON3));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	m_brush = wcex.hbrBackground;
 	//wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_WIN32LESSON1);
 	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= szWindowClass;
@@ -292,7 +294,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	
 
 	// 创建第二个窗口，用来添加控件，并加载二维码 
-	mWndControl = CreateWindow(szWindowClass, NULL, WS_POPUP | WS_CHILD,
+	mWndControl = CreateWindow(szWindowClass, NULL, WS_POPUP ,
 		CW_USEDEFAULT, CW_USEDEFAULT, 330, 482, hWndmain, NULL, hInstance, NULL);
 	
 	// 设置整个窗口位透明
@@ -300,8 +302,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	t |= WS_EX_LAYERED;
 	SetWindowLong(mWndControl, GWL_EXSTYLE, t);
 	//::SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 0), 111, LWA_COLORKEY | LWA_ALPHA); 
-	::SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 0), 111/*any*/, LWA_COLORKEY);
+	RECT rect;
+	GetWindowRect(mWndControl, &rect);
 
+	HRGN hRgn = CreateRectRgn(rect.left, rect.top, rect.right, rect.bottom);
+	HDC hDC = GetWindowDC(mWndControl);
+	FillRgn(hDC, hRgn, CreateSolidBrush(RGB(255, 0, 255))); 
+	SelectObject(hDC, hRgn);
+	SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 255), 255/*any*/, LWA_COLORKEY | LWA_ALPHA);
+	//::SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 255), 111/*any*/, LWA_COLORKEY);
 	/*RedrawWindow(mWndControl, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME |
         RDW_ALLCHILDREN);*/
 	DWORD dwErr = GetLastError();
@@ -414,7 +423,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
-
+	RECT rect;
 	char qr_bmp_file[MAX_PATH] = {0};
 	char TempFilePath[MAX_PATH];
 	if(!GetTempPath(sizeof(TempFilePath),TempFilePath)) {
@@ -489,6 +498,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//LoadAndBlitBitmap(LPCWSTR("C:\\tmp\\b.bmp"), hdc);
 //		LoadAndBlitBitmap2(L"C:\\Users\\clouder\\Desktop\\123.png", hdc, hWnd);
 //		LoadAndBlitBitmap(LPCWSTR(qr_bmp_file), hdc, hWnd);
+		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 		EndPaint(hWnd, &ps);  
 
 		break;
@@ -509,8 +519,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_ERASEBKGND:
-		if (hWnd == hWndmain)
+		/*if (hWnd == mWndControl)
 			return TRUE;
+		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);*/
+
+		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
+		return 0;
 		break;
 
 	case WM_LBUTTONDOWN:
@@ -539,8 +553,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;*/
 
 	case WM_CTLCOLOR:
-		return (LRESULT)CreateSolidBrush(RGB(255, 0, 0));
-		break;
+		//return (LRESULT)CreateSolidBrush(RGB(255, 0, 255));
+		//return (LRESULT)(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+		m_brush = CreateSolidBrush(RGB(255, 0, 255));
+		return (INT_PTR)m_brush;
 
 	case WM_NCHITTEST:
 		if (hWnd == mWndControl)
