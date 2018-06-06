@@ -334,19 +334,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	SendMessage(hWndStatic, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
 
 	//在第二个窗口上创建关闭按钮
-	//RECT rect;
-	//GetWindowRect(mWndControl, &rect);
-	//LONG BtnStyle = WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON;
-	///*HWND hWndButton = CreateWindow(TEXT("button"), "",  
-	//	BtnStyle,  
-	//	rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL,  
-	//	hInst, NULL); */
-	//HWND hWndButton = CreateWindowEx(WS_EX_LAYERED, TEXT("button"), "", BtnStyle,
-	//	rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL, hInstance, NULL);
+	LONG BtnStyle = WS_POPUP | WS_VISIBLE | BS_PUSHBUTTON;
+	/*HWND hWndButton = CreateWindow(TEXT("button"), "",  
+		BtnStyle,  
+		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL,  
+		hInst, NULL); */
+	HWND hWndButton = CreateWindowEx(WS_EX_LAYERED, TEXT("button"), "", BtnStyle,
+		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL, hInstance, NULL);
 
-	//DWORD dwErr1 = GetLastError();
-
-	//LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
+	LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
 
 	ShowWindow(hWndmain, nCmdShow);
 	UpdateWindow(hWndmain);
@@ -450,7 +446,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			WINDOWPOS * winPos = (WINDOWPOS*)lParam;
 			if (hWnd == mWndControl)
+			{
 				MoveWindow(hWndmain, winPos->x, winPos->y, winPos->cx, winPos->cy,TRUE);
+			}
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
