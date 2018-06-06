@@ -12,7 +12,7 @@ int genernate_qrcode_ex(char *qrdata)
     QRcode*         pQRC;
     FILE*           f;
 
-    if (pQRC = QRcode_encodeString(qrdata, 12, QR_ECLEVEL_H, QR_MODE_8, 1))
+    if (pQRC = QRcode_encodeString(qrdata, 12, QR_ECLEVEL_L, QR_MODE_8, 1))
     {
         unWidth = pQRC->width;
         unWidthAdjusted = unWidth *  3  * 3;
