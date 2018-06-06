@@ -18,6 +18,7 @@
 #include <wincodec.h>
 #include <windowsx.h>   
 #include <windef.h>
+#include <atlimage.h>  
 
 #pragma comment(lib, "netapi32.lib")
 
@@ -52,7 +53,6 @@ IStream * CreateStreamOnResource(LPCTSTR lpName, LPCTSTR lpType);
 HBITMAP LoadSplashImage(LPCTSTR lpName, LPCTSTR lpType);
 void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash);
 bool LoadPngImage(LPCTSTR lpName, LPCTSTR lpType, HWND hWnd);
-bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd);
 HBRUSH m_brush;
 
 
@@ -180,13 +180,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	temp4 = curl_escape(temp2, strlen(temp2));
 	sprintf(temp3, "%s%s%s&d=%s", appcc_host, temp, strtime, temp4);
 
-	if (0 != genernate_qrcode(temp3, qr_bmp_file))
+	int result = genernate_qrcode_ex(temp3);
+	if (0 != result)
 	{
+		::MessageBox(NULL, __T("Gernate qrcode file Failed"), __T("Error"), MB_OK);
 		printf("error to gernate qrcode file\n");
 		return FALSE;
 	}
 
 	/* cleanup */
+	curl_free(temp4);
 
 	// Perform application initialization:
 	if (!InitInstance (hInstance, nCmdShow))
@@ -265,19 +268,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	HWND hStaticWnd;
 
 	hInst = hInstance; // Store instance handle in our global variable
-
-	//hWndmain = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-	//   CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
-
-	//dwStyle |= WS_CLIPSIBLINGS;
-	//dwStyle &= ~(WS_CAPTION | WS_BORDER);
-	//WS_OVERLAPPEDWINDOW & WS_SYSMENU
-	/*  hWndmain = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & WS_SYSMENU ,
-	CW_USEDEFAULT, CW_USEDEFAULT, 280, 280, NULL, NULL, hInstance, NULL);*/
-
-	/*hWndmain = CreateWindow(szWindowClass, szTitle, WS_POPUP,
-	CW_USEDEFAULT, CW_USEDEFAULT, 330, 482, NULL, NULL, hInstance, NULL);*/
-
 	hWndmain = CreateWindowEx(WS_EX_LAYERED, szWindowClass, NULL, WS_POPUP | WS_VISIBLE,
 		0, 0, 330, 482, NULL, NULL, hInstance, NULL);
 
@@ -291,7 +281,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	hdc = BeginPaint(hWndmain, &ps);
 	LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 	EndPaint(hWndmain, &ps);  
-	
 
 	// 创建第二个窗口，用来添加控件，并加载二维码 
 	mWndControl = CreateWindow(szWindowClass, NULL, WS_POPUP ,
@@ -306,16 +295,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	GetWindowRect(mWndControl, &rect);
 
 	HRGN hRgn = CreateRectRgn(rect.left, rect.top, rect.right, rect.bottom);
+	HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 0));
 	HDC hDC = GetWindowDC(mWndControl);
-	FillRgn(hDC, hRgn, CreateSolidBrush(RGB(255, 0, 255))); 
 	SelectObject(hDC, hRgn);
-	SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 255), 255/*any*/, LWA_COLORKEY | LWA_ALPHA);
-	//::SetLayeredWindowAttributes(mWndControl, RGB(255, 0, 255), 111/*any*/, LWA_COLORKEY);
-	/*RedrawWindow(mWndControl, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_FRAME |
-        RDW_ALLCHILDREN);*/
+	SelectObject(hDC, hBrush);
+	FillRgn(hDC, hRgn, hBrush); 
+
+	SetLayeredWindowAttributes(mWndControl, RGB(0, 0, 0), 255/*any*/, LWA_COLORKEY);
+
+	ReleaseDC(mWndControl, hDC);
+	DeleteObject(hBrush);
+	DeleteObject(hRgn);
+
 	DWORD dwErr = GetLastError();
 	HWND hWndStatic = CreateWindow(_T("STATIC"),
-
 	// 在第二个窗口上创建static控件
 		NULL,
 		WS_CHILD | SS_BITMAP | WS_VISIBLE,
@@ -323,11 +316,18 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	// 在static控件上加载BMP图片
 	HBITMAP hBitmap;
-	hBitmap = (HBITMAP)::LoadImage(NULL, 
-		(LPCSTR)qr_bmp_file, IMAGE_BITMAP, 0, 0,
-		LR_LOADFROMFILE);
+	CImage fcimage;
+	HRESULT hResult = fcimage.Load(qr_bmp_file);
+	if (FAILED(hResult)) 
+	{
+		MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
+		return false;
+	}
+
+	hBitmap = fcimage.Detach();
 	// Verify that the image was loaded
 	if (hBitmap == NULL) {
+		DWORD dErr = GetLastError();
 		::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
 		return false;
 	}
@@ -354,60 +354,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	return TRUE;
 }
 
-bool LoadAndBlitBitmap(LPCWSTR szFileName, HDC hWinDC, HWND hWnd)
-{
-	// Load the bitmap image file
-	HBITMAP hBitmap;
-	hBitmap = (HBITMAP)::LoadImage(NULL, (LPCSTR)szFileName, IMAGE_BITMAP, 0, 0,
-		LR_LOADFROMFILE);
-	// Verify that the image was loaded
-	if (hBitmap == NULL) {
-		::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
-		return false;
-	}
-
-	// Create a device context that is compatible with the window
-	HDC hLocalDC;
-	hLocalDC = CreateCompatibleDC(hWinDC);
-	// Verify that the device context was created
-	if (hLocalDC == NULL) {
-		::MessageBox(NULL, __T("CreateCompatibleDC Failed"), __T("Error"), MB_OK);
-		::DeleteObject(hBitmap);
-		return false;
-	}
-
-	// Get the bitmap's parameters and verify the get
-	BITMAP qBitmap;
-	int iReturn = GetObject(reinterpret_cast<HGDIOBJ>(hBitmap), sizeof(BITMAP),
-		reinterpret_cast<LPVOID>(&qBitmap));
-	if (!iReturn) {
-		::MessageBox(NULL, __T("GetObject Failed"), __T("Error"), MB_OK);
-		::DeleteDC(hLocalDC);
-		::DeleteObject(hBitmap);
-		return false;
-	}
-
-	// Select the loaded bitmap into the device context
-	HBITMAP hOldBmp = (HBITMAP)::SelectObject(hLocalDC, hBitmap);
-	if (hOldBmp == NULL) {
-		::MessageBox(NULL, __T("SelectObject Failed"), __T("Error"), MB_OK);
-		return false;
-	}
-
-	// Blit the dc which holds the bitmap onto the window's dc
-	BOOL qRetBlit = ::BitBlt(hWinDC, 60, 100, qBitmap.bmWidth, qBitmap.bmHeight,
-		hLocalDC, 0, 0, SRCCOPY);
-	if (!qRetBlit) {
-		return false;
-	}
-
-	// Unitialize and deallocate resources
-	::SelectObject(hLocalDC, hOldBmp);
-	::DeleteDC(hLocalDC);
-	::DeleteObject(hBitmap);
-	return true;
-}
-
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -424,30 +370,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	RECT rect;
-	char qr_bmp_file[MAX_PATH] = {0};
-	char TempFilePath[MAX_PATH];
-	if(!GetTempPath(sizeof(TempFilePath),TempFilePath)) {
-		return 1;
-	}
-	sprintf(qr_bmp_file, "%s%s", TempFilePath, BMP_FILE);
 
 	switch (message)
 	{
 	case WM_CREATE:
 		{
-			// Set transparency 
-			//LONG t = GetWindowLong(hWnd, GWL_EXSTYLE);
-			//t |= WS_EX_LAYERED;
-			//SetWindowLong(hWnd, GWL_EXSTYLE, t);
-			//::SetLayeredWindowAttributes(hWnd, 0, 50, LWA_ALPHA); 
-			//DWORD dwErr = GetLastError();
-
 			int scrWidth,scrHeight;
 			RECT rect;
 			// Load the bitmap image file
 			HBITMAP hBitmap;
-			hBitmap = (HBITMAP)::LoadImage(NULL, (LPCSTR)qr_bmp_file, IMAGE_BITMAP, 0, 0,
-				LR_LOADFROMFILE);
+			CImage fcimage;
+			HRESULT hResult = fcimage.Load(qr_bmp_file);
+			if (FAILED(hResult)) 
+			{
+				MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
+				return false;
+			}
+			hBitmap = fcimage.Detach();
 			// Verify that the image was loaded
 			if (hBitmap == NULL) {
 				::MessageBox(NULL, __T("LoadImage Failed"), __T("Error"), MB_OK);
@@ -476,6 +415,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			::DeleteObject(hBitmap);
 		}
 		break;
+
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
@@ -492,16 +432,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
+
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code here...
-		//LoadAndBlitBitmap(LPCWSTR("C:\\tmp\\b.bmp"), hdc);
-//		LoadAndBlitBitmap2(L"C:\\Users\\clouder\\Desktop\\123.png", hdc, hWnd);
-//		LoadAndBlitBitmap(LPCWSTR(qr_bmp_file), hdc, hWnd);
 		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 		EndPaint(hWnd, &ps);  
-
 		break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -509,7 +447,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_WINDOWPOSCHANGED:
 	case WM_SIZE:
 	case WM_WINDOWPOSCHANGING:
-	
 		{
 			WINDOWPOS * winPos = (WINDOWPOS*)lParam;
 			if (hWnd == mWndControl)
@@ -519,10 +456,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_ERASEBKGND:
-		/*if (hWnd == mWndControl)
-			return TRUE;
-		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);*/
-
 		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 		return 0;
 		break;
@@ -541,20 +474,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	//case WM_WINDOWPOSCHANGED:
 	//case WM_SIZE:
 	case WM_NCMOUSEMOVE:
-	//	return 0;
-	//LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 		if (hWnd == hWndmain)
 			LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
 
-	/*case WM_SETFOCUS:
-		SendMessage(hWnd,WM_SETFOCUS,0,0);
-		break;*/
-
 	case WM_CTLCOLOR:
-		//return (LRESULT)CreateSolidBrush(RGB(255, 0, 255));
-		//return (LRESULT)(HBRUSH)GetStockObject(HOLLOW_BRUSH);
 		m_brush = CreateSolidBrush(RGB(255, 0, 255));
 		return (INT_PTR)m_brush;
 
