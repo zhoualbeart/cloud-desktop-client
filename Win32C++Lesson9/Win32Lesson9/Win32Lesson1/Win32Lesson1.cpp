@@ -463,7 +463,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 		if (hWnd == hWndButton)
 			DestroyWindow(hWndmain);
-		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+		if (hWnd == mWndControl)
+			SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
 		break;
 
 	//case WM_LBUTTONDBLCLK:
@@ -475,10 +476,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GetWindowRect(hWndButton, &rect);
 
 			if (PtInRect(&rect, pt))
-			{
 				LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
-				OutputDebugString("in rect!!\n");
-			}	
 			else
 				LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE), _T("PNG"), hWndButton);
 
@@ -511,11 +509,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CTLCOLOR:
 		m_brush = CreateSolidBrush(RGB(255, 0, 255));
 		return (INT_PTR)m_brush;
-
-	//case WM_NCHITTEST:
-	//	if (hWnd == mWndControl)
-	//		return HTCAPTION;
-	//	break;
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
