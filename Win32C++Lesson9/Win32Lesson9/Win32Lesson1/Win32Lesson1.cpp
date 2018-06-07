@@ -450,6 +450,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				MoveWindow(hWndmain, winPos->x, winPos->y, winPos->cx, winPos->cy,TRUE);
 			}
+			
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
@@ -460,6 +461,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_LBUTTONDOWN:
+		if (hWnd == hWndButton)
+			DestroyWindow(hWndmain);
 		SendMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
 		break;
 
@@ -469,10 +472,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			POINT pt;
 			GetCursorPos(&pt);
 			//ScreenToClient(hWnd, &pt);
-			GetWindowRect(hWnd, &rect);
+			GetWindowRect(hWndButton, &rect);
 
-			if (PtInRect(&rect, pt) && hWnd == hWndButton)
+			if (PtInRect(&rect, pt))
+			{
 				LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
+				OutputDebugString("in rect!!\n");
+			}	
 			else
 				LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE), _T("PNG"), hWndButton);
 
@@ -484,7 +490,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_MOUSELEAVE:
-		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE), _T("PNG"), hWndButton);
+		if (hWndButton == hWnd)
+			LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE), _T("PNG"), hWndButton);
+		if (hWndmain == hWnd)
+			LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 		break;
 	//case WM_LBUTTONUP:
 	case WM_MOVE:
@@ -932,16 +941,28 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
     ptOrigin.y = rcWork.top + (rcWork.bottom - rcWork.top - sizeSplash.cy) / 2;*/
 	RECT windowRect;
 	
-	if (mWndControl == NULL)
+	POINT ptOrigin;
+	if (hWndmain == hwndSplash)
 	{
-		
-		GetWindowRect(hwndSplash,&windowRect);
+		if (!mWndControl)
+		{
+			GetWindowRect(hwndSplash,&windowRect);
+			ptOrigin.x = windowRect.left;
+			ptOrigin.y = windowRect.top;
+		}
+		else
+		{
+			GetWindowRect(mWndControl,&windowRect);
+			ptOrigin.x = windowRect.left;
+			ptOrigin.y = windowRect.top;
+		}
 	}
-	else 
+	else if ((hWndButton == hwndSplash))
 	{
 		GetWindowRect(mWndControl,&windowRect);
+		ptOrigin.x = windowRect.right - 60;
+		ptOrigin.y = windowRect.top + 30;
 	}
-	POINT ptOrigin = { windowRect.left, windowRect.top };
 	
     // create a memory DC holding the splash bitmap
     HDC hdcScreen = ::GetDC(hwndSplash);
@@ -951,7 +972,7 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
     // use the source image's alpha channel for blending
     BLENDFUNCTION blend = { 0 };
     blend.BlendOp = AC_SRC_OVER;
-    blend.SourceConstantAlpha = 255;
+    blend.SourceConstantAlpha = 250;
     blend.AlphaFormat = AC_SRC_ALPHA;
  
     // paint the window (in the right location) with the alpha-blended bitmap
@@ -966,13 +987,6 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
 		assert(L"UpdateLayeredWindow 调用失败");
 		TCHAR tmp[255] = {_T('\0')};
 	}*/
-	char string[255] = {0};
-	memset(string, 0, sizeof string );
-	sprintf(string, "x = %d & y = %d\n", ptOrigin.x, ptOrigin.y);
-	OutputDebugString(string);
-	memset(string, 0, sizeof string );
-	sprintf(string, "hWnd = %p\n", hwndSplash);
-	OutputDebugString(string);
 
 	if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, &ptOrigin, &sizeSplash,
         hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
