@@ -262,7 +262,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-HWND hWndmain = NULL, mWndControl = NULL;
+HWND hWndmain = NULL, mWndControl = NULL, hWndButton = NULL;
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	HWND hStaticWnd;
@@ -339,10 +339,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		BtnStyle,  
 		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL,  
 		hInst, NULL); */
-	HWND hWndButton = CreateWindowEx(WS_EX_LAYERED, TEXT("button"), "", BtnStyle,
+	hWndButton = CreateWindowEx(WS_EX_LAYERED, szWindowClass, "", BtnStyle,
 		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL, hInstance, NULL);
 
-	LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
+	LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE), _T("PNG"), hWndButton);
 
 	ShowWindow(hWndmain, nCmdShow);
 	UpdateWindow(hWndmain);
@@ -366,6 +366,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	RECT rect;
+	TRACKMOUSEEVENT tme = {0};
 
 	switch (message)
 	{
@@ -463,7 +464,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	//case WM_LBUTTONDBLCLK:
-	//case WM_MOUSEMOVE:
+	case WM_MOUSEMOVE:
+		{
+			POINT pt;
+			GetCursorPos(&pt);
+			//ScreenToClient(hWnd, &pt);
+			GetWindowRect(hWnd, &rect);
+
+			if (PtInRect(&rect, pt) && hWnd == hWndButton)
+				LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE_PRESS), _T("PNG"), hWndButton);
+			else
+				LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE), _T("PNG"), hWndButton);
+
+			tme.cbSize = sizeof(tme);
+			tme.dwFlags = TME_HOVER | TME_LEAVE;
+			tme.hwndTrack = hWnd;
+			tme.dwHoverTime = 50; //鼠标在窗口上停留50毫秒时发送WM_MOUSEHOVER，可以改
+			TrackMouseEvent(&tme);
+		}
+		break;
+	case WM_MOUSELEAVE:
+		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_CLOSE), _T("PNG"), hWndButton);
+		break;
 	//case WM_LBUTTONUP:
 	case WM_MOVE:
 	//case WM_MOUSEACTIVATE:
@@ -481,10 +503,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		m_brush = CreateSolidBrush(RGB(255, 0, 255));
 		return (INT_PTR)m_brush;
 
-	case WM_NCHITTEST:
-		if (hWnd == mWndControl)
-			return HTCAPTION;
-		break;
+	//case WM_NCHITTEST:
+	//	if (hWnd == mWndControl)
+	//		return HTCAPTION;
+	//	break;
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
