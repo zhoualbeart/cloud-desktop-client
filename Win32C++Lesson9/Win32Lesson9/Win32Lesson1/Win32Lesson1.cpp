@@ -312,7 +312,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	// 在第二个窗口上创建static控件
 		NULL,
 		WS_CHILD | SS_BITMAP | WS_VISIBLE,
-		60, 130, 0, 0, mWndControl,0,  hInst, NULL);
+		65, 130, 0, 0, mWndControl,0,  hInst, NULL);
 
 	// 在static控件上加载BMP图片
 	HBITMAP hBitmap;
@@ -456,9 +456,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_ERASEBKGND:
-		LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
+		//LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 		return 0;
-		break;
 
 	case WM_LBUTTONDOWN:
 		if (hWnd == hWndButton)
@@ -503,7 +502,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_NCMOUSEMOVE:
 		if (hWnd == hWndmain)
 			LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
-			return DefWindowProc(hWnd, message, wParam, lParam);
+//			return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
 
 	case WM_CTLCOLOR:
