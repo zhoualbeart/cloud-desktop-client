@@ -72,9 +72,9 @@ int genernate_qrcode_ex(char *qrdata)
                     {
                         for (n = 0; n <  3; n++)
                         {
-                            *(pDestData + n * 3 + unWidthAdjusted * l) = 0xff;
-                            *(pDestData + 1 + n * 3 + unWidthAdjusted * l) = 0;
-                            *(pDestData + 2 + n * 3 + unWidthAdjusted * l) = 0;
+                            *(pDestData + n * 3 + unWidthAdjusted * l) = 0x69;
+                            *(pDestData + 1 + n * 3 + unWidthAdjusted * l) = 0x69;
+                            *(pDestData + 2 + n * 3 + unWidthAdjusted * l) = 0x69;
                         }
                     }
                 }
