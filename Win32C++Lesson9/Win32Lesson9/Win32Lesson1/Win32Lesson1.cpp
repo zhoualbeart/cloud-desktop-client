@@ -86,8 +86,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		return FALSE;
 	}
 
-	size_t len =  strlen(lpCmdLine);
-
 	if (MAX_PATH < strlen(lpCmdLine))   // check file length
 	{
 		::MessageBox(NULL, 
@@ -97,37 +95,26 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		return FALSE;
 	}
 
-
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_WIN32LESSON1, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
-
 
 	char str_final_ansi[MAX_PATH] = {0};
 	char str_final_utf8[MAX_PATH] = {0};
 	strrpl(str_final_ansi, lpCmdLine, "\\", "\\\\");
 	Convert(str_final_ansi, str_final_utf8, CP_ACP, CP_UTF8);
 
-	 char TempFilePath[MAX_PATH];
-     if(!GetTempPath(sizeof(TempFilePath),TempFilePath)) {
-		 return FALSE;
-     }
-
-
-	/* generate qrcode bmp file */
-	/*if (0 != genernate_qrcode(lpCmdLine, "b.bmp"))
-	{
-		printf("error to gernate qrcode file\n");
+	char TempFilePath[MAX_PATH];
+	if(!GetTempPath(sizeof(TempFilePath),TempFilePath)) {
 		return FALSE;
-	}*/
+	}
 
 	/*
-	 * https://appcc.pispower.com/s?T=12&t=1497008691868&d=urlencode(JSON) 
-	 * http[s]://appcc.cloudak47.cn/s?T=12&t=1497008691868&d=
-	 * {“username”:”xxx”, “domain”:”od.com”, “filepath”:”C:\demo.txt”}
-	 */
-
+	* https://appcc.pispower.com/s?T=12&t=1497008691868&d=urlencode(JSON) 
+	* http[s]://appcc.cloudak47.cn/s?T=12&t=1497008691868&d=
+	* {“username”:”xxx”, “domain”:”od.com”, “filepath”:”C:\demo.txt”}
+	*/
 	char qrcode_content[10240] = {0};
 	char temp2[1024] = {0};
 	char temp3[2048] = {0};
@@ -144,9 +131,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	GetModuleFileName(NULL,sPath,MAX_PATH);
 	*strrchr(sPath, 0x5C) = 0;
 	sprintf(config_file, "%s\\%s", sPath, CONF_FILE);
-
 	sprintf(qr_bmp_file, "%s%s", TempFilePath, BMP_FILE);
-
 	json_data = read_json_data_from_file(config_file);
 
 	if (JSON_DATA_INVALIDE == get_appcc_host(json_data, appcc_host))
@@ -162,7 +147,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	//sprintf(strtime, "%hu", rawtime.millitm);
 	sprintf(strtime, "%ld000", rawtime.time);
 
-
 	/* 3.get username */
 	DWORD ret = MAX_PATH;
 	char username[MAX_PATH]={0};
@@ -170,6 +154,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	{
 		fprintf(stderr, "Error: error number:%sd", GetLastError());
 	}
+
 	/* 4.get domain */
 	char domain_name[MAX_PATH] = {0};
 	get_domain_name(domain_name);
@@ -235,7 +220,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbSize = sizeof(WNDCLASSEX);
 
 	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	//wcex.style			= WS_CAPTION;
 	wcex.lpfnWndProc	= WndProc;
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
@@ -244,7 +228,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
 	m_brush = wcex.hbrBackground;
-	//wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_WIN32LESSON1);
 	wcex.lpszMenuName	= NULL;
 	wcex.lpszClassName	= szWindowClass;
 	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON3));
@@ -335,10 +318,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	//在第二个窗口上创建关闭按钮
 	LONG BtnStyle = WS_POPUP | WS_VISIBLE | BS_PUSHBUTTON;
-	/*HWND hWndButton = CreateWindow(TEXT("button"), "",  
-		BtnStyle,  
-		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL,  
-		hInst, NULL); */
 	hWndButton = CreateWindowEx(WS_EX_LAYERED, szWindowClass, "", BtnStyle,
 		rect.right - rect.left - 40, 20, 28, 28, mWndControl, NULL, hInstance, NULL);
 
@@ -456,7 +435,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_ERASEBKGND:
-		//LoadPngImage(MAKEINTRESOURCE(IDB_PNG_BG), _T("PNG"), hWndmain);
 		return 0;
 
 	case WM_LBUTTONDOWN:
@@ -686,15 +664,13 @@ int  get_domain_name(char *domain_name)
         wprintf(L"NetGetDCName was successful\n", nStatus);
         wprintf(L"DC Name = %ws\n", lpDcName);
 
-		DWORD ret = GetEnvironmentVariable("USERDOMAIN", domain_name, MAX_PATH);
+		DWORD ret = GetEnvironmentVariable("USERDNSDOMAIN", domain_name, MAX_PATH);
 		if ( 0 == ret) {
 			fprintf(stderr, "Failed to get domain name\n");
 			memset(domain_name, 0 , MAX_PATH);
 		} else {
 			
 			fprintf(stdout, "The domain name is ========== %s\n", domain_name);
-			strcat(domain_name, DOMAIN_SUFFIX);
-			fprintf(stdout, "After strcat domain name is %s\n", domain_name);
 			for (char* ptr = domain_name; *ptr; ptr++) {  
 				*ptr = tolower(*ptr);  //change to lower case
 			}  
@@ -926,13 +902,7 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
     monitorinfo.cbSize = sizeof(monitorinfo);
     GetMonitorInfo(hmonPrimary, &monitorinfo);
  
-    // center the splash screen in the middle of the primary work area
-    /*const RECT & rcWork = monitorinfo.rcWork;
-    POINT ptOrigin;
-    ptOrigin.x = rcWork.left + (rcWork.right - rcWork.left - sizeSplash.cx) / 2;
-    ptOrigin.y = rcWork.top + (rcWork.bottom - rcWork.top - sizeSplash.cy) / 2;*/
 	RECT windowRect;
-	
 	POINT ptOrigin;
 	if (hWndmain == hwndSplash)
 	{
@@ -952,7 +922,7 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
 	else if ((hWndButton == hwndSplash))
 	{
 		GetWindowRect(mWndControl,&windowRect);
-		ptOrigin.x = windowRect.right - 60;
+		ptOrigin.x = windowRect.right - 65;
 		ptOrigin.y = windowRect.top + 30;
 	}
 	
@@ -966,19 +936,6 @@ void SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
     blend.BlendOp = AC_SRC_OVER;
     blend.SourceConstantAlpha = 250;
     blend.AlphaFormat = AC_SRC_ALPHA;
- 
-    // paint the window (in the right location) with the alpha-blended bitmap
-	/*SetWindowLong (hwndSplash, 
-               GWL_EXSTYLE, 
-               GetWindowLong(hwndSplash,GWL_EXSTYLE) & ~WS_EX_LAYOUTRTL);*/
-
-	/*if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, &ptOrigin, &sizeSplash,
-        hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
-	{
-		DWORD dwErr = GetLastError();
-		assert(L"UpdateLayeredWindow 调用失败");
-		TCHAR tmp[255] = {_T('\0')};
-	}*/
 
 	if ( !UpdateLayeredWindow(hwndSplash, hdcScreen, &ptOrigin, &sizeSplash,
         hdcMem, &ptZero, RGB(0, 0, 0), &blend, ULW_ALPHA))
