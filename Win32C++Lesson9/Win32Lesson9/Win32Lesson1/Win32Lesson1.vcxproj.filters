@@ -30,6 +30,9 @@
     <ClCompile Include="json_data_parse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="qrencode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -59,6 +62,9 @@
     <ClInclude Include="json_data_parse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="qrencode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="small.ico">
@@ -69,6 +75,30 @@
     </None>
     <None Include="ReadMe.txt" />
     <None Include="C:\Users\clouder\Desktop\在线代理.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="c:\users\clouder\desktop\icon2.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\在线代理.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\..\thinclient\thinclient\conf\css\close.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\..\thinclient\thinclient\conf\css\closepress.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\..\thinclient\thinclient\bin\css\close.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\..\thinclient\thinclient\bin\css\closepress.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\二维码下载.png">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
