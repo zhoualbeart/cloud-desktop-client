@@ -251,8 +251,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	HWND hStaticWnd;
 
 	hInst = hInstance; // Store instance handle in our global variable
-	hWndmain = CreateWindowEx(WS_EX_LAYERED, szWindowClass, NULL, WS_POPUP | WS_VISIBLE | WS_MINIMIZEBOX,
-		0, 0, 330, 482, NULL, NULL, hInstance, NULL);
+	hWndmain = CreateWindowEx(WS_EX_LAYERED, szWindowClass, NULL, WS_POPUP, 0, 0, 330, 482, NULL, NULL, hInstance, NULL);
 
 	if (!hWndmain)
 	{

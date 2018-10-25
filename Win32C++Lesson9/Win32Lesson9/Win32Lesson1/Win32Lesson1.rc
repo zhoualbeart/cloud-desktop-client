@@ -40,7 +40,7 @@ IDI_ICON3               ICON                    "res\\在线代理.ico"
 
 IDB_PNG_CLOSE           PNG                     "D:\\lf\\thinclient\\thinclient\\bin\\css\\close.png"
 IDB_PNG_CLOSE_PRESS     PNG                     "D:\\lf\\thinclient\\thinclient\\bin\\css\\closepress.png"
-IDB_PNG_BG              PNG                     "res\\二维码下载.png"
+IDB_PNG_BG              PNG                     "D:\\lf\\cloud-desktop-client\\Win32C++Lesson9\\Win32Lesson9\\Win32Lesson1\\res\\二维码下载.png"
 
 /////////////////////////////////////////////////////////////////////////////
 //
